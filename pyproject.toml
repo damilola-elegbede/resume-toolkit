@@ -1,0 +1,172 @@
+[project]
+name = "resume-toolkit"
+version = "0.1.0"
+description = "Python backend for resume parsing, ATS scoring, and data analysis"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [
+    { name = "Resume Toolkit Team" }
+]
+keywords = ["resume", "ats", "pdf", "parser", "job-search"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "pdfplumber>=0.11.4",
+    "PyPDF2>=3.0.1",
+    "pydantic>=2.9.2",
+    "pydantic-settings>=2.6.0",
+    "libsql-client>=0.8.1",
+    "pandas>=2.2.3",
+    "numpy>=2.1.3",
+    "python-dotenv>=1.0.1",
+    "click>=8.1.7",
+    "rich>=13.9.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.3",
+    "pytest-cov>=6.0.0",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.7.4",
+    "mypy>=1.13.0",
+    "black>=24.10.0",
+    "ipython>=8.29.0",
+]
+
+[project.scripts]
+resume-parser = "resume_toolkit.pdf_parser.cli:main"
+ats-scorer = "resume_toolkit.ats_scorer.cli:main"
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["resume_toolkit"]
+
+[tool.setuptools.package-dir]
+resume_toolkit = "src/python"
+
+# Pytest Configuration
+[tool.pytest.ini_options]
+testpaths = ["src/python/tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "--cov=src/python",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+# Ruff Configuration
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src/python"]
+exclude = [
+    ".git",
+    ".venv",
+    "__pycache__",
+    "dist",
+    "build",
+    "*.egg-info",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+    "UP",     # pyupgrade
+    "ARG",    # flake8-unused-arguments
+    "SIM",    # flake8-simplify
+    "TCH",    # flake8-type-checking
+    "PTH",    # flake8-use-pathlib
+    "RUF",    # ruff-specific rules
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+    "B008",   # do not perform function calls in argument defaults
+    "B904",   # raise without from inside except
+]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]  # Allow unused imports in __init__.py
+"tests/*" = ["ARG", "S101"]  # Allow assert and unused arguments in tests
+
+[tool.ruff.lint.isort]
+known-first-party = ["resume_toolkit"]
+
+# MyPy Configuration
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+strict_equality = true
+strict_concatenate = true
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+
+[[tool.mypy.overrides]]
+module = [
+    "pdfplumber.*",
+    "PyPDF2.*",
+    "libsql_client.*",
+]
+ignore_missing_imports = true
+
+# Coverage Configuration
+[tool.coverage.run]
+source = ["src/python"]
+omit = [
+    "*/tests/*",
+    "*/__init__.py",
+    "*/conftest.py",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+# Enforce minimum 85% coverage
+fail_under = 85
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "@abstractmethod",
+]

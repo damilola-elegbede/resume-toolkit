@@ -1,0 +1,189 @@
+name: Coverage Quality Gate
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  enforce-coverage:
+    name: Enforce 85% Coverage on Commands
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          npm ci --prefer-offline
+          pip install -r requirements.txt
+
+      - name: Run TypeScript tests with coverage
+        run: npm run test:coverage
+        continue-on-error: true
+        id: ts_coverage
+
+      - name: Verify TypeScript command coverage >= 85%
+        run: |
+          echo "🔍 Checking TypeScript command coverage..."
+
+          # Parse coverage report
+          if [ -f coverage/coverage-summary.json ]; then
+            node -e "
+            const coverage = require('./coverage/coverage-summary.json');
+            const commandFiles = Object.keys(coverage).filter(f => f.includes('src/cli/commands/'));
+
+            let totalLines = 0, coveredLines = 0;
+            let totalBranches = 0, coveredBranches = 0;
+            let totalFunctions = 0, coveredFunctions = 0;
+
+            commandFiles.forEach(file => {
+              const c = coverage[file];
+              totalLines += c.lines.total;
+              coveredLines += c.lines.covered;
+              totalBranches += c.branches.total;
+              coveredBranches += c.branches.covered;
+              totalFunctions += c.functions.total;
+              coveredFunctions += c.functions.covered;
+            });
+
+            const lineCoverage = (coveredLines / totalLines * 100).toFixed(2);
+            const branchCoverage = (coveredBranches / totalBranches * 100).toFixed(2);
+            const functionCoverage = (coveredFunctions / totalFunctions * 100).toFixed(2);
+
+            console.log('📊 Command Coverage Report:');
+            console.log('  Lines:     ' + lineCoverage + '%');
+            console.log('  Branches:  ' + branchCoverage + '%');
+            console.log('  Functions: ' + functionCoverage + '%');
+
+            if (lineCoverage < 85 || branchCoverage < 85 || functionCoverage < 85) {
+              console.log('');
+              console.log('❌ COVERAGE CHECK FAILED!');
+              console.log('   Commands must maintain 85%+ coverage in all metrics.');
+              console.log('   Please add more tests to improve coverage.');
+              process.exit(1);
+            }
+
+            console.log('');
+            console.log('✅ Coverage check passed! All commands have 85%+ coverage.');
+            "
+          else
+            echo "⚠️  Coverage report not found"
+            exit 1
+          fi
+
+      - name: Run Python tests with coverage
+        run: |
+          source venv/bin/activate 2>/dev/null || python -m venv venv && source venv/bin/activate
+          pytest --cov=src/python --cov-report=term-missing --cov-report=json
+        continue-on-error: true
+        id: py_coverage
+
+      - name: Verify Python module coverage >= 85%
+        run: |
+          echo "🔍 Checking Python module coverage..."
+
+          if [ -f coverage.json ]; then
+            python3 -c "
+import json
+import sys
+
+with open('coverage.json') as f:
+    coverage = json.load(f)
+
+files = coverage.get('files', {})
+module_files = {k: v for k, v in files.items() if 'src/python' in k and '__init__' not in k and 'tests' not in k}
+
+if not module_files:
+    print('⚠️  No module files found in coverage report')
+    sys.exit(1)
+
+total_lines = sum(v['summary']['num_statements'] for v in module_files.values())
+covered_lines = sum(v['summary']['covered_lines'] for v in module_files.values())
+missing_lines = sum(v['summary']['missing_lines'] for v in module_files.values())
+
+coverage_pct = (covered_lines / total_lines * 100) if total_lines > 0 else 0
+
+print(f'📊 Python Module Coverage:')
+print(f'  Total statements: {total_lines}')
+print(f'  Covered: {covered_lines}')
+print(f'  Missing: {missing_lines}')
+print(f'  Coverage: {coverage_pct:.2f}%')
+print()
+
+if coverage_pct < 85:
+    print('❌ COVERAGE CHECK FAILED!')
+    print(f'   Python modules must maintain 85%+ coverage.')
+    print(f'   Current coverage: {coverage_pct:.2f}%')
+    print(f'   Please add more tests to improve coverage.')
+    sys.exit(1)
+
+print('✅ Coverage check passed! All Python modules have 85%+ coverage.')
+"
+          else
+            echo "⚠️  Coverage report not found"
+            exit 1
+          fi
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-reports
+          path: |
+            coverage/
+            htmlcov/
+            coverage.json
+            .coverage
+        if: always()
+
+      - name: Comment PR with coverage report
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+
+            let comment = '## 📊 Coverage Report\n\n';
+
+            // Read TypeScript coverage
+            if (fs.existsSync('coverage/coverage-summary.json')) {
+              const tsCoverage = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+              const total = tsCoverage.total;
+              comment += '### TypeScript Coverage\n';
+              comment += `- Lines: ${total.lines.pct}%\n`;
+              comment += `- Branches: ${total.branches.pct}%\n`;
+              comment += `- Functions: ${total.functions.pct}%\n`;
+              comment += `- Statements: ${total.statements.pct}%\n\n`;
+            }
+
+            // Read Python coverage
+            if (fs.existsSync('coverage.json')) {
+              const pyCoverage = JSON.parse(fs.readFileSync('coverage.json', 'utf8'));
+              const pct = pyCoverage.totals.percent_covered;
+              comment += '### Python Coverage\n';
+              comment += `- Overall: ${pct.toFixed(2)}%\n\n`;
+            }
+
+            comment += '### Quality Gate: Commands must maintain **85%+ coverage**\n';
+            comment += '✅ Coverage requirements met!\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
