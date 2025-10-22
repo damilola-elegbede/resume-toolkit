@@ -16,12 +16,14 @@ import ora from 'ora';
 import { TursoClient } from '../db/client';
 import {
   ApplicationStatus,
+  ApplicationStatusType,
   ApplicationCreate,
   ApplicationUpdate,
   Application,
   Interview,
   InterviewCreate,
   InterviewType,
+  InterviewTypeType,
 } from '../db/types';
 
 // ============================================================================
@@ -33,7 +35,7 @@ export interface AddApplicationOptions {
   position: string;
   url?: string;
   appliedDate: string;
-  status?: ApplicationStatus;
+  status?: ApplicationStatusType;
   notes?: string;
   resumeVersion?: string;
   coverLetterUsed?: boolean;
@@ -46,14 +48,14 @@ export interface UpdateApplicationOptions {
   applicationId?: number;
   company?: string;
   position?: string;
-  status?: ApplicationStatus;
+  status?: ApplicationStatusType;
   notes?: string;
   nextFollowupDate?: string;
   lastContactDate?: string;
 }
 
 export interface ListApplicationsOptions {
-  status?: ApplicationStatus;
+  status?: ApplicationStatusType;
   company?: string;
   limit?: number;
   offset?: number;
@@ -321,7 +323,7 @@ export async function addInterviewNotes(options: InterviewNotesOptions): Promise
     const interviewData: InterviewCreate = {
       application_id: options.applicationId,
       interview_date: options.interviewDate,
-      interview_type: options.interviewType as InterviewType,
+      interview_type: options.interviewType as InterviewTypeType,
       personal_notes: options.notes,
       round_number: options.roundNumber || 1,
       interviewer_name: options.interviewerName || null,
@@ -421,7 +423,7 @@ async function promptAddApplication(): Promise<AddApplicationOptions> {
  * Format application for display
  */
 function formatApplicationDisplay(app: Application): string {
-  const statusColors: Record<ApplicationStatus, string> = {
+  const statusColors: Record<ApplicationStatusType, string> = {
     [ApplicationStatus.APPLIED]: 'blue',
     [ApplicationStatus.SCREENING]: 'cyan',
     [ApplicationStatus.INTERVIEWING]: 'yellow',
