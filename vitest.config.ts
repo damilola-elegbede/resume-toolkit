@@ -19,8 +19,13 @@ export default defineConfig({
         'dist/**',
       ],
       all: true,
+      // Coverage Restoration Plan:
+      // - Current: 40% (baseline as of Jan 2025)
+      // - Target: 80%+ to match CLAUDE.md standards
+      // - Milestones: 50% (Q1 2025), 65% (Q2 2025), 80% (Q3 2025)
+      // - Priority: Critical paths first (parsing, optimization, scoring)
+      // - Tracking: Monitor per-command coverage in CI reports
       // Global coverage thresholds (overall project coverage)
-      // Set to current coverage level - will increase as tests are added
       lines: 40,
       functions: 40,
       branches: 40,

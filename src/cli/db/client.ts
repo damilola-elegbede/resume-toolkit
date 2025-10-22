@@ -5,6 +5,17 @@
 
 import { createClient, Client, ResultSet } from '@libsql/client';
 
+// Whitelist of allowed ORDER BY columns to prevent SQL injection (ISSUE #11)
+const ALLOWED_ORDER_COLUMNS = [
+  'applied_date',
+  'company',
+  'position',
+  'status',
+  'created_at',
+  'updated_at',
+  'id',
+] as const;
+
 import {
   Application,
   ApplicationCreate,
@@ -202,6 +213,16 @@ export class TursoClient {
    */
   async getApplications(filters: QueryFilters = {}): Promise<Application[]> {
     const { status, company, limit = 100, offset = 0, orderBy = 'applied_date DESC' } = filters;
+
+    // Validate orderBy against whitelist to prevent SQL injection (ISSUE #11)
+    if (orderBy) {
+      const orderColumn = orderBy.split(' ')[0];
+      if (!ALLOWED_ORDER_COLUMNS.includes(orderColumn as any)) {
+        throw new Error(
+          `Invalid orderBy column: ${orderColumn}. Allowed: ${ALLOWED_ORDER_COLUMNS.join(', ')}`
+        );
+      }
+    }
 
     const conditions: string[] = [];
     const args: any[] = [];
