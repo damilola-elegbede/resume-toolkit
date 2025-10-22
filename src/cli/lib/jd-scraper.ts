@@ -85,11 +85,21 @@ const JOB_BOARDS: Record<string, JobBoardConfig> = {
  * Identify job board from URL
  */
 function identifyJobBoard(url: string): string | null {
-  if (url.includes('linkedin.com/jobs/view/')) {return 'linkedin';}
-  if (url.includes('boards.greenhouse.io/')) {return 'greenhouse';}
-  if (url.includes('jobs.lever.co/')) {return 'lever';}
-  if (url.includes('indeed.com/viewjob')) {return 'indeed';}
-  if (url.includes('.myworkdayjobs.com/')) {return 'workday';}
+  if (url.includes('linkedin.com/jobs/view/')) {
+    return 'linkedin';
+  }
+  if (url.includes('boards.greenhouse.io/')) {
+    return 'greenhouse';
+  }
+  if (url.includes('jobs.lever.co/')) {
+    return 'lever';
+  }
+  if (url.includes('indeed.com/viewjob')) {
+    return 'indeed';
+  }
+  if (url.includes('.myworkdayjobs.com/')) {
+    return 'workday';
+  }
   return null;
 }
 
@@ -121,8 +131,9 @@ function parseRequirements(text: string): string[] {
   const requirements: string[] = [];
 
   // Look for requirements section
-  const requirementsMatch =
-    text.match(/(?:Requirements?|Qualifications?|You Have|What We're Looking For)[:\n]+([\s\S]*?)(?=\n\n[A-Z]|Benefits|Responsibilities|$)/i);
+  const requirementsMatch = text.match(
+    /(?:Requirements?|Qualifications?|You Have|What We're Looking For)[:\n]+([\s\S]*?)(?=\n\n[A-Z]|Benefits|Responsibilities|$)/i
+  );
 
   if (requirementsMatch && requirementsMatch[1]) {
     const reqText = requirementsMatch[1];
@@ -170,7 +181,7 @@ function parseBenefits(text: string): string[] {
 
   // Look for benefits section
   const benefitsMatch = text.match(
-    /(?:Benefits|What We Offer|Perks|Compensation)[:\n]+([\s\S]*?)(?=\n\n[A-Z]|Requirements|Responsibilities|$)/i,
+    /(?:Benefits|What We Offer|Perks|Compensation)[:\n]+([\s\S]*?)(?=\n\n[A-Z]|Requirements|Responsibilities|$)/i
   );
 
   if (benefitsMatch && benefitsMatch[1]) {
@@ -212,7 +223,7 @@ export async function scrapeJobDescription(url: string): Promise<JobDescriptionD
   const boardType = identifyJobBoard(url);
   if (!boardType) {
     throw new Error(
-      'Unsupported job board. Supported: LinkedIn, Greenhouse, Lever, Indeed, Workday',
+      'Unsupported job board. Supported: LinkedIn, Greenhouse, Lever, Indeed, Workday'
     );
   }
 

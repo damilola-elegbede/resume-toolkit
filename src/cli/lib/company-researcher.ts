@@ -53,7 +53,11 @@ export async function scrapeCompanyWebsite(url: string): Promise<WebsiteData> {
     // Launch browser with stealth settings
     browser = await chromium.launch({
       headless: true,
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-blink-features=AutomationControlled',
+      ],
     });
 
     const page = await browser.newPage();
@@ -124,7 +128,7 @@ export async function scrapeCompanyWebsite(url: string): Promise<WebsiteData> {
  */
 export async function fetchCompanyNews(
   companyName: string,
-  limit: number = 5,
+  limit: number = 5
 ): Promise<NewsArticle[]> {
   if (!companyName || companyName.trim().length === 0) {
     return [];
@@ -235,7 +239,7 @@ export function extractCompanyData(html: string, url: string): CompanyData {
   // Extract location/headquarters
   let location = '';
   const locationMatch = bodyText.match(
-    /(?:headquarters?|based|located)[\s:]+([A-Z][a-zA-Z\s,]+(?:CA|NY|TX|MA|WA|IL|CO|GA|FL|OR))/i,
+    /(?:headquarters?|based|located)[\s:]+([A-Z][a-zA-Z\s,]+(?:CA|NY|TX|MA|WA|IL|CO|GA|FL|OR))/i
   );
   if (locationMatch) {
     location = locationMatch[1]?.trim() || '';
