@@ -62,13 +62,14 @@ def format_star_answer(anecdote: dict) -> str:
     )
 
     if has_star_markers:
-        # Already formatted, just clean up
+        # Already formatted, just clean up and preserve STAR markers
         lines = []
         for line in content.split("\n"):
             line = line.strip()
             if line and not line.startswith("**Context:**"):
-                # Convert **Context:** to Situation if present
-                if line.startswith("**") and line.endswith("**"):
+                # Keep STAR format markers (Situation:, Task:, Action:, Result:)
+                # Remove only decorative ** markers that don't contain content
+                if line.startswith("**") and line.endswith("**") and ":" not in line:
                     continue
                 lines.append(line)
         return "\n".join(lines)
