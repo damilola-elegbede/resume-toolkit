@@ -14,6 +14,9 @@ import * as applyModule from '../../commands/apply';
 import { applyCommand, applyWorkflow, ApplyOptions, WorkflowResult } from '../../commands/apply';
 
 describe('apply command', () => {
+  // Mock Date to ensure consistent test results
+  const MOCK_DATE = new Date('2025-10-21T12:00:00Z');
+
   const mockJDData = {
     url: 'https://jobs.company.com/position/123',
     company: 'TechCorp Inc',
@@ -113,6 +116,10 @@ describe('apply command', () => {
   };
 
   beforeEach(() => {
+    // Mock system time for consistent date-based tests
+    vi.useFakeTimers();
+    vi.setSystemTime(MOCK_DATE);
+
     // Clear all mocks but preserve mock implementations
     vi.clearAllMocks();
 
@@ -165,6 +172,7 @@ describe('apply command', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -201,7 +209,9 @@ describe('apply command', () => {
       const result = await applyWorkflow('https://jobs.company.com/position/123', options);
 
       expect(result.stages.interviewPrep?.completed).toBe(true);
-      expect(result.files).toEqual(expect.arrayContaining([expect.stringContaining('interview-prep.md')]));
+      expect(result.files).toEqual(
+        expect.arrayContaining([expect.stringContaining('interview-prep.md')])
+      );
     });
 
     it('should skip interview prep when flag is not set', async () => {
@@ -460,10 +470,12 @@ describe('apply command', () => {
       expect(result.stages.coverLetter?.completed).toBe(true);
       expect(result.stages.optimization?.completed).toBe(true);
       // Files should contain results from all stages
-      expect(result.files).toEqual(expect.arrayContaining([
-        expect.stringContaining('cover-letter.md'),
-        expect.stringContaining('tailored-resume.md')
-      ]));
+      expect(result.files).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('cover-letter.md'),
+          expect.stringContaining('tailored-resume.md'),
+        ])
+      );
     });
 
     it('should handle Unicode in company/position names', async () => {

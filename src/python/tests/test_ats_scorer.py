@@ -10,7 +10,6 @@ Tests cover:
 - Edge cases (empty resume, missing sections, etc.)
 """
 
-
 import pytest
 from ats_scorer.models import ATSScore, Recommendation, ScoreBreakdown
 from ats_scorer.scorer import (
@@ -520,7 +519,11 @@ class TestRecommendationGeneration:
         )
 
         # Should include formatting recommendations
-        format_recs = [r for r in recommendations if "format" in r.description.lower() or "date" in r.description.lower()]
+        format_recs = [
+            r
+            for r in recommendations
+            if "format" in r.description.lower() or "date" in r.description.lower()
+        ]
         assert len(format_recs) > 0
 
     def test_recommendations_prioritized_by_impact(self) -> None:

@@ -4,14 +4,13 @@ Provides type-safe database operations using libsql_client and Pydantic models.
 """
 
 import os
-from typing import Any, TypeVar
+from collections.abc import Mapping
+from typing import Any, TypeVar, cast
 
 try:
     import libsql_client
 except ImportError:
-    raise ImportError(
-        "libsql_client is not installed. Install it with: pip install libsql-client"
-    )
+    raise ImportError("libsql_client is not installed. Install it with: pip install libsql-client")
 
 from .models import (
     ActiveApplication,
@@ -31,7 +30,20 @@ from .models import (
     TopKeyword,
 )
 
-T = TypeVar('T')
+T = TypeVar("T")
+
+# Whitelist of allowed columns for ORDER BY to prevent SQL injection
+ALLOWED_ORDER_COLUMNS = {
+    "id",
+    "company",
+    "position",
+    "applied_date",
+    "status",
+    "created_at",
+    "updated_at",
+    "last_contact_date",
+    "next_followup_date",
+}
 
 
 class TursoClient:
@@ -61,11 +73,7 @@ class TursoClient:
             apps = await client.get_applications()
     """
 
-    def __init__(
-        self,
-        database_url: str | None = None,
-        auth_token: str | None = None
-    ):
+    def __init__(self, database_url: str | None = None, auth_token: str | None = None):
         """
         Initialize Turso client.
 
@@ -92,10 +100,7 @@ class TursoClient:
 
     async def connect(self) -> None:
         """Establish connection to Turso database"""
-        self.client = libsql_client.create_client(
-            url=self.database_url,
-            auth_token=self.auth_token
-        )
+        self.client = libsql_client.create_client(url=self.database_url, auth_token=self.auth_token)
 
     async def close(self) -> None:
         """Close database connection"""
@@ -120,20 +125,52 @@ class TursoClient:
 
     def _row_to_dict(self, row: Any) -> dict[str, Any]:
         """Convert database row to dictionary"""
-        if hasattr(row, '_asdict'):
-            return row._asdict()
-        return dict(row)
+        if hasattr(row, "_asdict"):
+            raw = row._asdict()
+            return dict(cast(Mapping[str, Any], raw))
+        return dict(cast(Mapping[str, Any], row))
 
     def _parse_model(self, row: Any, model: type[T]) -> T:
         """Parse database row into Pydantic model"""
         if row is None:
-            return None
+            raise ValueError(f"Cannot parse None row into {model.__name__}")
         data = self._row_to_dict(row)
         return model(**data)
 
     def _parse_models(self, rows: list[Any], model: type[T]) -> list[T]:
         """Parse multiple database rows into Pydantic models"""
         return [self._parse_model(row, model) for row in rows]
+
+    def _validate_order_by(self, order_by: str) -> str:
+        """
+        Validate and sanitize ORDER BY clause to prevent SQL injection.
+
+        Args:
+            order_by: ORDER BY clause (e.g., "applied_date DESC" or "company")
+
+        Returns:
+            Sanitized ORDER BY clause
+
+        Raises:
+            ValueError: If column or direction is invalid
+        """
+        parts = order_by.split()
+        if len(parts) not in [1, 2]:
+            raise ValueError(f"Invalid order_by format: {order_by}")
+
+        column = parts[0]
+        direction = parts[1].upper() if len(parts) == 2 else "ASC"
+
+        if column not in ALLOWED_ORDER_COLUMNS:
+            raise ValueError(
+                f"Invalid column for ordering: {column}. "
+                f"Allowed columns: {', '.join(sorted(ALLOWED_ORDER_COLUMNS))}"
+            )
+
+        if direction not in ["ASC", "DESC"]:
+            raise ValueError(f"Invalid direction: {direction}. Must be ASC or DESC")
+
+        return f"{column} {direction}"
 
     # ========================================================================
     # APPLICATION OPERATIONS
@@ -160,14 +197,29 @@ class TursoClient:
             RETURNING *
         """
 
-        result = await self._ensure_connected().execute(query, [
-            app.company, app.position, app.job_url, app.job_description,
-            app.location, app.salary_range, app.employment_type.value,
-            app.applied_date, app.status.value, app.source,
-            app.resume_version, int(app.cover_letter_used), app.keywords_targeted,
-            app.last_contact_date, app.next_followup_date, app.notes,
-            app.resume_path, app.cover_letter_path
-        ])
+        result = await self._ensure_connected().execute(
+            query,
+            [
+                app.company,
+                app.position,
+                app.job_url,
+                app.job_description,
+                app.location,
+                app.salary_range,
+                app.employment_type.value,
+                app.applied_date,
+                app.status.value,
+                app.source,
+                app.resume_version,
+                int(app.cover_letter_used),
+                app.keywords_targeted,
+                app.last_contact_date,
+                app.next_followup_date,
+                app.notes,
+                app.resume_path,
+                app.cover_letter_path,
+            ],
+        )
 
         return self._parse_model(result.rows[0], Application)
 
@@ -187,7 +239,7 @@ class TursoClient:
         company: str | None = None,
         limit: int = 100,
         offset: int = 0,
-        order_by: str = "applied_date DESC"
+        order_by: str = "applied_date DESC",
     ) -> list[Application]:
         """
         Get applications with optional filters.
@@ -197,13 +249,16 @@ class TursoClient:
             company: Filter by company name (case-insensitive partial match)
             limit: Maximum number of results
             offset: Number of results to skip
-            order_by: SQL ORDER BY clause
+            order_by: SQL ORDER BY clause (column name with optional ASC/DESC)
 
         Returns:
             List of applications
+
+        Raises:
+            ValueError: If order_by contains invalid column or direction
         """
         conditions = []
-        params = []
+        params: list[Any] = []
 
         if status:
             conditions.append("status = ?")
@@ -215,10 +270,13 @@ class TursoClient:
 
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
+        # Validate and sanitize ORDER BY to prevent SQL injection
+        sanitized_order_by = self._validate_order_by(order_by)
+
         query = f"""
             SELECT * FROM applications
             {where_clause}
-            ORDER BY {order_by}
+            ORDER BY {sanitized_order_by}
             LIMIT ? OFFSET ?
         """
 
@@ -228,9 +286,7 @@ class TursoClient:
         return self._parse_models(result.rows, Application)
 
     async def update_application(
-        self,
-        application_id: int,
-        update: ApplicationUpdate
+        self, application_id: int, update: ApplicationUpdate
     ) -> Application | None:
         """
         Update an application.
@@ -253,7 +309,7 @@ class TursoClient:
         for key, value in update_data.items():
             set_clauses.append(f"{key} = ?")
             # Handle enum values
-            if hasattr(value, 'value'):
+            if hasattr(value, "value"):
                 params.append(value.value)
             elif isinstance(value, bool):
                 params.append(int(value))
@@ -264,7 +320,7 @@ class TursoClient:
 
         query = f"""
             UPDATE applications
-            SET {', '.join(set_clauses)}
+            SET {", ".join(set_clauses)}
             WHERE id = ?
             RETURNING *
         """
@@ -288,7 +344,7 @@ class TursoClient:
         """
         query = "DELETE FROM applications WHERE id = ?"
         result = await self._ensure_connected().execute(query, [application_id])
-        return result.rows_affected > 0
+        return bool(result.rows_affected > 0)
 
     # ========================================================================
     # INTERVIEW OPERATIONS
@@ -307,24 +363,36 @@ class TursoClient:
             RETURNING *
         """
 
-        result = await self._ensure_connected().execute(query, [
-            interview.application_id, interview.interview_date, interview.interview_time,
-            interview.duration_minutes, interview.interview_type.value, interview.round_number,
-            interview.interviewer_name, interview.interviewer_title, interview.interviewer_email,
-            interview.panel_size, interview.questions_asked, interview.topics_covered,
-            interview.technical_assessment,
-            interview.result.value if interview.result else None,
-            interview.feedback_received, interview.personal_notes, interview.areas_to_improve,
-            interview.location, interview.meeting_link, interview.timezone
-        ])
+        result = await self._ensure_connected().execute(
+            query,
+            [
+                interview.application_id,
+                interview.interview_date,
+                interview.interview_time,
+                interview.duration_minutes,
+                interview.interview_type.value,
+                interview.round_number,
+                interview.interviewer_name,
+                interview.interviewer_title,
+                interview.interviewer_email,
+                interview.panel_size,
+                interview.questions_asked,
+                interview.topics_covered,
+                interview.technical_assessment,
+                interview.result.value if interview.result else None,
+                interview.feedback_received,
+                interview.personal_notes,
+                interview.areas_to_improve,
+                interview.location,
+                interview.meeting_link,
+                interview.timezone,
+            ],
+        )
 
         return self._parse_model(result.rows[0], Interview)
 
     async def get_interviews(
-        self,
-        application_id: int | None = None,
-        limit: int = 100,
-        offset: int = 0
+        self, application_id: int | None = None, limit: int = 100, offset: int = 0
     ) -> list[Interview]:
         """Get interviews with optional application filter"""
         if application_id:
@@ -347,9 +415,7 @@ class TursoClient:
         return self._parse_models(result.rows, Interview)
 
     async def update_interview(
-        self,
-        interview_id: int,
-        update: InterviewUpdate
+        self, interview_id: int, update: InterviewUpdate
     ) -> Interview | None:
         """Update an interview"""
         update_data = update.model_dump(exclude_unset=True)
@@ -363,7 +429,7 @@ class TursoClient:
 
         for key, value in update_data.items():
             set_clauses.append(f"{key} = ?")
-            if hasattr(value, 'value'):
+            if hasattr(value, "value"):
                 params.append(value.value)
             else:
                 params.append(value)
@@ -372,7 +438,7 @@ class TursoClient:
 
         query = f"""
             UPDATE interviews
-            SET {', '.join(set_clauses)}
+            SET {", ".join(set_clauses)}
             WHERE id = ?
             RETURNING *
         """
@@ -384,10 +450,7 @@ class TursoClient:
     # APPLICATION STAGE OPERATIONS
     # ========================================================================
 
-    async def get_application_stages(
-        self,
-        application_id: int
-    ) -> list[ApplicationStage]:
+    async def get_application_stages(self, application_id: int) -> list[ApplicationStage]:
         """Get stage history for an application"""
         query = """
             SELECT * FROM application_stages
@@ -406,7 +469,7 @@ class TursoClient:
         self,
         start_date: str | None = None,
         end_date: str | None = None,
-        limit: int = 30
+        limit: int = 30,
     ) -> list[Metrics]:
         """
         Get metrics for date range.
@@ -420,7 +483,7 @@ class TursoClient:
             List of metrics ordered by date descending
         """
         conditions = []
-        params = []
+        params: list[Any] = []
 
         if start_date:
             conditions.append("metric_date >= ?")
@@ -472,14 +535,26 @@ class TursoClient:
             RETURNING *
         """
 
-        result = await self._ensure_connected().execute(query, [
-            metrics.metric_date, metrics.total_applications, metrics.applications_sent_today,
-            metrics.total_responses, metrics.response_rate, metrics.total_interviews,
-            metrics.interview_rate, metrics.total_offers, metrics.offer_rate,
-            metrics.total_rejections, metrics.avg_response_time_days,
-            metrics.avg_time_to_interview_days, metrics.avg_time_to_offer_days,
-            metrics.active_applications, metrics.pending_followups
-        ])
+        result = await self._ensure_connected().execute(
+            query,
+            [
+                metrics.metric_date,
+                metrics.total_applications,
+                metrics.applications_sent_today,
+                metrics.total_responses,
+                metrics.response_rate,
+                metrics.total_interviews,
+                metrics.interview_rate,
+                metrics.total_offers,
+                metrics.offer_rate,
+                metrics.total_rejections,
+                metrics.avg_response_time_days,
+                metrics.avg_time_to_interview_days,
+                metrics.avg_time_to_offer_days,
+                metrics.active_applications,
+                metrics.pending_followups,
+            ],
+        )
 
         return self._parse_model(result.rows[0], Metrics)
 
@@ -488,8 +563,7 @@ class TursoClient:
     # ========================================================================
 
     async def upsert_keyword_performance(
-        self,
-        keyword_perf: KeywordPerformanceCreate
+        self, keyword_perf: KeywordPerformanceCreate
     ) -> KeywordPerformance:
         """Create or update keyword performance"""
         query = """
@@ -511,13 +585,21 @@ class TursoClient:
             RETURNING *
         """
 
-        result = await self._ensure_connected().execute(query, [
-            keyword_perf.keyword, keyword_perf.total_uses, keyword_perf.response_count,
-            keyword_perf.response_rate, keyword_perf.interview_count,
-            keyword_perf.interview_rate, keyword_perf.offer_count, keyword_perf.offer_rate,
-            keyword_perf.category.value if keyword_perf.category else None,
-            keyword_perf.last_used_date
-        ])
+        result = await self._ensure_connected().execute(
+            query,
+            [
+                keyword_perf.keyword,
+                keyword_perf.total_uses,
+                keyword_perf.response_count,
+                keyword_perf.response_rate,
+                keyword_perf.interview_count,
+                keyword_perf.interview_rate,
+                keyword_perf.offer_count,
+                keyword_perf.offer_rate,
+                keyword_perf.category.value if keyword_perf.category else None,
+                keyword_perf.last_used_date,
+            ],
+        )
 
         return self._parse_model(result.rows[0], KeywordPerformance)
 

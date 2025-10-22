@@ -16,12 +16,15 @@ import ora from 'ora';
 import { TursoClient } from '../db/client';
 import {
   ApplicationStatus,
+  ApplicationStatusType,
   ApplicationCreate,
   ApplicationUpdate,
   Application,
   Interview,
   InterviewCreate,
   InterviewType,
+  InterviewTypeType,
+  QueryFilters,
 } from '../db/types';
 
 // ============================================================================
@@ -33,7 +36,7 @@ export interface AddApplicationOptions {
   position: string;
   url?: string;
   appliedDate: string;
-  status?: ApplicationStatus;
+  status?: ApplicationStatusType;
   notes?: string;
   resumeVersion?: string;
   coverLetterUsed?: boolean;
@@ -46,14 +49,14 @@ export interface UpdateApplicationOptions {
   applicationId?: number;
   company?: string;
   position?: string;
-  status?: ApplicationStatus;
+  status?: ApplicationStatusType;
   notes?: string;
   nextFollowupDate?: string;
   lastContactDate?: string;
 }
 
 export interface ListApplicationsOptions {
-  status?: ApplicationStatus;
+  status?: ApplicationStatusType;
   company?: string;
   limit?: number;
   offset?: number;
@@ -63,7 +66,7 @@ export interface ListApplicationsOptions {
 export interface InterviewNotesOptions {
   applicationId: number;
   interviewDate: string;
-  interviewType: string;
+  interviewType: InterviewTypeType;
   notes: string;
   roundNumber?: number;
   interviewerName?: string;
@@ -268,9 +271,10 @@ export async function listApplications(options: ListApplicationsOptions): Promis
   const client = new TursoClient();
 
   try {
-    const filters: any = {};
+    const filters: QueryFilters = {};
 
     if (options.status) {
+      // Status already validated at boundary, safe to assign
       filters.status = options.status;
     }
 
@@ -321,7 +325,7 @@ export async function addInterviewNotes(options: InterviewNotesOptions): Promise
     const interviewData: InterviewCreate = {
       application_id: options.applicationId,
       interview_date: options.interviewDate,
-      interview_type: options.interviewType as InterviewType,
+      interview_type: options.interviewType,
       personal_notes: options.notes,
       round_number: options.roundNumber || 1,
       interviewer_name: options.interviewerName || null,
@@ -421,7 +425,7 @@ async function promptAddApplication(): Promise<AddApplicationOptions> {
  * Format application for display
  */
 function formatApplicationDisplay(app: Application): string {
-  const statusColors: Record<ApplicationStatus, string> = {
+  const statusColors: Record<ApplicationStatusType, string> = {
     [ApplicationStatus.APPLIED]: 'blue',
     [ApplicationStatus.SCREENING]: 'cyan',
     [ApplicationStatus.INTERVIEWING]: 'yellow',
@@ -496,6 +500,18 @@ const addCommand = new Command('add')
         options = await promptAddApplication();
         spinner.start('Adding application...');
       } else {
+        // Validate status string at boundary (ISSUE #16)
+        if (cmdOptions.status) {
+          const validStatuses = Object.values(ApplicationStatus);
+          if (!validStatuses.includes(cmdOptions.status)) {
+            spinner.fail('Invalid status');
+            console.error(
+              chalk.red(`Error: Invalid status. Valid options: ${validStatuses.join(', ')}`)
+            );
+            process.exit(1);
+          }
+        }
+
         options = {
           company: cmdOptions.company,
           position: cmdOptions.position,
@@ -544,6 +560,18 @@ const updateCommand = new Command('update')
     const spinner = ora('Updating application...').start();
 
     try {
+      // Validate status string at boundary (ISSUE #16)
+      if (cmdOptions.status) {
+        const validStatuses = Object.values(ApplicationStatus);
+        if (!validStatuses.includes(cmdOptions.status)) {
+          spinner.fail('Invalid status');
+          console.error(
+            chalk.red(`Error: Invalid status. Valid options: ${validStatuses.join(', ')}`)
+          );
+          process.exit(1);
+        }
+      }
+
       const options: UpdateApplicationOptions = {
         ...(id && { applicationId: parseInt(id) }),
         ...(cmdOptions.company && { company: cmdOptions.company }),
@@ -579,6 +607,18 @@ const listCommand = new Command('list')
     const spinner = ora('Loading applications...').start();
 
     try {
+      // Validate status string at boundary (ISSUE #16)
+      if (cmdOptions.status) {
+        const validStatuses = Object.values(ApplicationStatus);
+        if (!validStatuses.includes(cmdOptions.status)) {
+          spinner.fail('Invalid status');
+          console.error(
+            chalk.red(`Error: Invalid status. Valid options: ${validStatuses.join(', ')}`)
+          );
+          process.exit(1);
+        }
+      }
+
       const options: ListApplicationsOptions = {
         status: cmdOptions.status,
         company: cmdOptions.company,
@@ -633,6 +673,18 @@ const interviewCommand = new Command('interview')
     const spinner = ora('Adding interview notes...').start();
 
     try {
+      // Validate interview type at boundary (ISSUE #16)
+      if (cmdOptions.type) {
+        const validTypes = Object.values(InterviewType);
+        if (!validTypes.includes(cmdOptions.type)) {
+          spinner.fail('Invalid interview type');
+          console.error(
+            chalk.red(`Error: Invalid interview type. Valid types: ${validTypes.join(', ')}`)
+          );
+          process.exit(1);
+        }
+      }
+
       const options: InterviewNotesOptions = {
         applicationId: parseInt(id),
         interviewDate: cmdOptions.date,

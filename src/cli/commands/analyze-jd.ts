@@ -11,22 +11,28 @@ import { join } from 'path';
 import chalk from 'chalk';
 import { Command } from 'commander';
 import ora from 'ora';
+import { z } from 'zod';
 
 import { scrapeJobDescription, type JobDescriptionData } from '../lib/jd-scraper';
 
-interface AnalysisResult {
-  technical_skills: string[];
-  leadership_skills: string[];
-  domain_expertise: string[];
-  required_skills: string[];
-  nice_to_have_skills: string[];
-  ats_keywords: string[];
-  keyword_importance: Record<string, number>;
-  keyword_frequency: Record<string, number>;
-}
+/**
+ * Zod schema for validating Python analyzer output
+ */
+const AnalysisResultSchema = z.object({
+  technical_skills: z.array(z.string()),
+  leadership_skills: z.array(z.string()),
+  domain_expertise: z.array(z.string()),
+  required_skills: z.array(z.string()),
+  nice_to_have_skills: z.array(z.string()),
+  ats_keywords: z.array(z.string()),
+  keyword_importance: z.record(z.number()),
+  keyword_frequency: z.record(z.number()),
+});
+
+type AnalysisResult = z.infer<typeof AnalysisResultSchema>;
 
 /**
- * Call Python analyzer
+ * Call Python analyzer with timeout and error handling
  */
 async function callPythonAnalyzer(description: string): Promise<AnalysisResult> {
   return new Promise((resolve, reject) => {
@@ -46,26 +52,52 @@ print(json.dumps(result))
 
     let output = '';
     let errorOutput = '';
+    let timedOut = false;
 
-    pythonProcess.stdout.on('data', (data) => {
+    // ISSUE #5: Add 60-second timeout to prevent hangs
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      pythonProcess.kill('SIGKILL');
+      reject(new Error('Python analyzer timed out after 60s'));
+    }, 60_000);
+
+    // ISSUE #5: Add process error handler
+    pythonProcess.on('error', (err) => {
+      clearTimeout(timeout);
+      reject(new Error(`Failed to start Python process: ${err.message}`));
+    });
+
+    pythonProcess.stdout.on('data', (data: Buffer) => {
       output += data.toString();
     });
 
-    pythonProcess.stderr.on('data', (data) => {
+    pythonProcess.stderr.on('data', (data: Buffer) => {
       errorOutput += data.toString();
     });
 
     pythonProcess.on('close', (code) => {
+      clearTimeout(timeout);
+
+      // Already rejected by timeout
+      if (timedOut) {
+        return;
+      }
+
       if (code !== 0) {
         reject(new Error(`Python analyzer failed: ${errorOutput}`));
         return;
       }
 
       try {
-        const result = JSON.parse(output);
-        resolve(result);
+        // ISSUE #6: Validate output with Zod schema before using
+        const parsed = AnalysisResultSchema.safeParse(JSON.parse(output));
+        if (!parsed.success) {
+          reject(new Error(`Invalid analysis result: ${parsed.error.message}`));
+          return;
+        }
+        resolve(parsed.data);
       } catch (error) {
-        reject(new Error(`Failed to parse analysis result: ${error}`));
+        reject(new Error(`Failed to parse analysis result: ${String(error)}`));
       }
     });
 
@@ -222,12 +254,12 @@ export async function analyzeJobDescription(url: string): Promise<void> {
     spinner.succeed(`Analysis saved to ${chalk.green(outputPath)}`);
 
     // Display summary
-    console.log('\n' + chalk.bold('Analysis Summary:'));
-    console.log(`${chalk.blue('Technical Skills:')} ${analysis.technical_skills.length}`);
-    console.log(`${chalk.blue('Leadership Skills:')} ${analysis.leadership_skills.length}`);
-    console.log(`${chalk.blue('ATS Keywords:')} ${analysis.ats_keywords.length}`);
-    console.log(`${chalk.blue('Top Keywords:')} ${analysis.ats_keywords.slice(0, 5).join(', ')}`);
-    console.log(`\n${chalk.green('✓')} Full analysis saved to: ${outputPath}\n`);
+    console.info('\n' + chalk.bold('Analysis Summary:'));
+    console.info(`${chalk.blue('Technical Skills:')} ${analysis.technical_skills.length}`);
+    console.info(`${chalk.blue('Leadership Skills:')} ${analysis.leadership_skills.length}`);
+    console.info(`${chalk.blue('ATS Keywords:')} ${analysis.ats_keywords.length}`);
+    console.info(`${chalk.blue('Top Keywords:')} ${analysis.ats_keywords.slice(0, 5).join(', ')}`);
+    console.info(`\n${chalk.green('✓')} Full analysis saved to: ${outputPath}\n`);
   } catch (error) {
     spinner.fail('Failed to analyze job description');
 
@@ -261,7 +293,7 @@ export const analyzeJdCommand = new Command('analyze-jd')
   .action(async (url: string) => {
     try {
       await analyzeJobDescription(url);
-    } catch (error) {
+    } catch {
       process.exit(1);
     }
   });

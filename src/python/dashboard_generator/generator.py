@@ -61,7 +61,9 @@ def calculate_pipeline_funnel(applications: list[dict[str, Any]]) -> dict[str, A
             status_counts[status] += 1
 
     # Calculate percentages
-    percentages = {f"{status}_pct": (count / total) * 100.0 for status, count in status_counts.items()}
+    percentages = {
+        f"{status}_pct": (count / total) * 100.0 for status, count in status_counts.items()
+    }
 
     # Calculate response rate (applications that moved beyond "applied")
     responded = total - status_counts["applied"]
@@ -215,9 +217,7 @@ def calculate_time_metrics(
     }
 
 
-def analyze_keyword_performance(
-    keyword_performance: list[dict[str, Any]]
-) -> dict[str, Any]:
+def analyze_keyword_performance(keyword_performance: list[dict[str, Any]]) -> dict[str, Any]:
     """
     Analyze keyword effectiveness.
 
@@ -250,9 +250,7 @@ def analyze_keyword_performance(
     }
 
 
-def generate_funnel_visualization(
-    applications: list[dict[str, Any]], color: bool = False
-) -> str:
+def generate_funnel_visualization(applications: list[dict[str, Any]], color: bool = False) -> str:
     """
     Generate ASCII funnel visualization.
 
@@ -292,9 +290,7 @@ def generate_funnel_visualization(
     return "\n".join(lines)
 
 
-def generate_metrics_table(
-    applications: list[dict[str, Any]], stages: list[dict[str, Any]]
-) -> str:
+def generate_metrics_table(applications: list[dict[str, Any]], stages: list[dict[str, Any]]) -> str:
     """
     Generate success metrics table.
 
@@ -547,9 +543,7 @@ def generate_dashboard(
             applications = filter_applications_by_date(applications, start_date, end_date)
             # Also filter stages
             stages = [
-                s
-                for s in stages
-                if s["application_id"] in [app["id"] for app in applications]
+                s for s in stages if s["application_id"] in [app["id"] for app in applications]
             ]
 
     # Calculate all metrics
@@ -586,11 +580,17 @@ def generate_dashboard(
     # Time analysis
     if time_metrics["avg_response_time_days"] > 0:
         sections.append("Time Analysis:")
-        sections.append(f"- Avg time to response:  {time_metrics['avg_response_time_days']:.1f} days")
+        sections.append(
+            f"- Avg time to response:  {time_metrics['avg_response_time_days']:.1f} days"
+        )
         if time_metrics["avg_time_to_interview_days"] > 0:
-            sections.append(f"- Avg time to interview: {time_metrics['avg_time_to_interview_days']:.1f} days")
+            sections.append(
+                f"- Avg time to interview: {time_metrics['avg_time_to_interview_days']:.1f} days"
+            )
         if time_metrics["avg_time_to_offer_days"] > 0:
-            sections.append(f"- Avg time to offer:     {time_metrics['avg_time_to_offer_days']:.1f} days")
+            sections.append(
+                f"- Avg time to offer:     {time_metrics['avg_time_to_offer_days']:.1f} days"
+            )
         sections.append("")
 
     # Keywords

@@ -12,8 +12,10 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 # ENUMS
 # ============================================================================
 
+
 class ApplicationStatus(str, Enum):
     """Valid application status values"""
+
     APPLIED = "applied"
     SCREENING = "screening"
     INTERVIEWING = "interviewing"
@@ -25,6 +27,7 @@ class ApplicationStatus(str, Enum):
 
 class EmploymentType(str, Enum):
     """Valid employment type values"""
+
     FULL_TIME = "Full-time"
     PART_TIME = "Part-time"
     CONTRACT = "Contract"
@@ -34,6 +37,7 @@ class EmploymentType(str, Enum):
 
 class InterviewType(str, Enum):
     """Valid interview type values"""
+
     PHONE = "phone"
     VIDEO = "video"
     ONSITE = "onsite"
@@ -47,6 +51,7 @@ class InterviewType(str, Enum):
 
 class InterviewResult(str, Enum):
     """Valid interview result values"""
+
     PASSED = "passed"
     FAILED = "failed"
     PENDING = "pending"
@@ -55,6 +60,7 @@ class InterviewResult(str, Enum):
 
 class KeywordCategory(str, Enum):
     """Valid keyword category values"""
+
     TECHNICAL_SKILL = "technical_skill"
     SOFT_SKILL = "soft_skill"
     CERTIFICATION = "certification"
@@ -69,8 +75,10 @@ class KeywordCategory(str, Enum):
 # BASE MODELS
 # ============================================================================
 
+
 class ApplicationBase(BaseModel):
     """Base model for application data (used for creation)"""
+
     company: str = Field(..., min_length=1, max_length=255)
     position: str = Field(..., min_length=1, max_length=255)
     job_url: str | None = None
@@ -90,7 +98,7 @@ class ApplicationBase(BaseModel):
     resume_path: str | None = None
     cover_letter_path: str | None = None
 
-    @field_validator('applied_date', 'last_contact_date', 'next_followup_date')
+    @field_validator("applied_date", "last_contact_date", "next_followup_date")
     @classmethod
     def validate_date_format(cls, v: str | None) -> str | None:
         """Validate ISO 8601 date format"""
@@ -105,6 +113,7 @@ class ApplicationBase(BaseModel):
 
 class Application(ApplicationBase):
     """Complete application model (includes database fields)"""
+
     id: int
     created_at: str
     updated_at: str
@@ -118,6 +127,7 @@ class ApplicationCreate(ApplicationBase):
 
 class ApplicationUpdate(BaseModel):
     """Model for updating applications (all fields optional)"""
+
     company: str | None = None
     position: str | None = None
     job_url: str | None = None
@@ -142,8 +152,10 @@ class ApplicationUpdate(BaseModel):
 # INTERVIEW MODELS
 # ============================================================================
 
+
 class InterviewBase(BaseModel):
     """Base model for interview data"""
+
     application_id: int
     interview_date: str = Field(..., description="ISO 8601 date format: YYYY-MM-DD")
     interview_time: str | None = Field(None, description="Time in HH:MM format")
@@ -165,7 +177,7 @@ class InterviewBase(BaseModel):
     meeting_link: str | None = None
     timezone: str | None = None
 
-    @field_validator('interview_date')
+    @field_validator("interview_date")
     @classmethod
     def validate_date_format(cls, v: str) -> str:
         """Validate ISO 8601 date format"""
@@ -178,6 +190,7 @@ class InterviewBase(BaseModel):
 
 class Interview(InterviewBase):
     """Complete interview model (includes database fields)"""
+
     id: int
     created_at: str
     updated_at: str
@@ -191,6 +204,7 @@ class InterviewCreate(InterviewBase):
 
 class InterviewUpdate(BaseModel):
     """Model for updating interviews (all fields optional)"""
+
     interview_date: str | None = None
     interview_time: str | None = None
     duration_minutes: int | None = None
@@ -216,15 +230,17 @@ class InterviewUpdate(BaseModel):
 # APPLICATION STAGE MODELS
 # ============================================================================
 
+
 class ApplicationStageBase(BaseModel):
     """Base model for application stage data"""
+
     application_id: int
     status: ApplicationStatus
     stage_date: str = Field(..., description="ISO 8601 date format: YYYY-MM-DD")
     notes: str | None = None
     changed_by: str | None = "manual"
 
-    @field_validator('stage_date')
+    @field_validator("stage_date")
     @classmethod
     def validate_date_format(cls, v: str) -> str:
         """Validate ISO 8601 date format"""
@@ -237,6 +253,7 @@ class ApplicationStageBase(BaseModel):
 
 class ApplicationStage(ApplicationStageBase):
     """Complete application stage model (includes database fields)"""
+
     id: int
     created_at: str
 
@@ -251,8 +268,10 @@ class ApplicationStageCreate(ApplicationStageBase):
 # METRICS MODELS
 # ============================================================================
 
+
 class MetricsBase(BaseModel):
     """Base model for metrics data"""
+
     metric_date: str = Field(..., description="ISO 8601 date format: YYYY-MM-DD")
     total_applications: int = 0
     applications_sent_today: int = 0
@@ -269,7 +288,7 @@ class MetricsBase(BaseModel):
     active_applications: int = 0
     pending_followups: int = 0
 
-    @field_validator('metric_date')
+    @field_validator("metric_date")
     @classmethod
     def validate_date_format(cls, v: str) -> str:
         """Validate ISO 8601 date format"""
@@ -282,6 +301,7 @@ class MetricsBase(BaseModel):
 
 class Metrics(MetricsBase):
     """Complete metrics model (includes database fields)"""
+
     id: int
     created_at: str
     updated_at: str
@@ -295,6 +315,7 @@ class MetricsCreate(MetricsBase):
 
 class MetricsUpdate(BaseModel):
     """Model for updating metrics (all fields optional)"""
+
     total_applications: int | None = None
     applications_sent_today: int | None = None
     total_responses: int | None = None
@@ -315,8 +336,10 @@ class MetricsUpdate(BaseModel):
 # KEYWORD PERFORMANCE MODELS
 # ============================================================================
 
+
 class KeywordPerformanceBase(BaseModel):
     """Base model for keyword performance data"""
+
     keyword: str = Field(..., min_length=1)
     total_uses: int = 0
     response_count: int = 0
@@ -328,7 +351,7 @@ class KeywordPerformanceBase(BaseModel):
     category: KeywordCategory | None = None
     last_used_date: str | None = Field(None, description="ISO 8601 date format: YYYY-MM-DD")
 
-    @field_validator('last_used_date')
+    @field_validator("last_used_date")
     @classmethod
     def validate_date_format(cls, v: str | None) -> str | None:
         """Validate ISO 8601 date format"""
@@ -343,6 +366,7 @@ class KeywordPerformanceBase(BaseModel):
 
 class KeywordPerformance(KeywordPerformanceBase):
     """Complete keyword performance model (includes database fields)"""
+
     id: int
     created_at: str
     updated_at: str
@@ -356,6 +380,7 @@ class KeywordPerformanceCreate(KeywordPerformanceBase):
 
 class KeywordPerformanceUpdate(BaseModel):
     """Model for updating keyword performance (all fields optional)"""
+
     total_uses: int | None = None
     response_count: int | None = None
     response_rate: float | None = None
@@ -371,8 +396,10 @@ class KeywordPerformanceUpdate(BaseModel):
 # VIEW MODELS (Read-only)
 # ============================================================================
 
+
 class ActiveApplication(Application):
     """Model for v_active_applications view"""
+
     interview_count: int
     latest_interview_date: str | None
     latest_interview_type: str | None
@@ -380,6 +407,7 @@ class ActiveApplication(Application):
 
 class PipelineSummary(BaseModel):
     """Model for v_pipeline_summary view"""
+
     status: ApplicationStatus
     count: int
     percentage: float
@@ -389,6 +417,7 @@ class PipelineSummary(BaseModel):
 
 class InterviewPerformance(BaseModel):
     """Model for v_interview_performance view"""
+
     company: str
     total_applications: int
     total_interviews: int
@@ -400,6 +429,7 @@ class InterviewPerformance(BaseModel):
 
 class TopKeyword(BaseModel):
     """Model for v_top_keywords view"""
+
     keyword: str
     category: KeywordCategory | None
     total_uses: int

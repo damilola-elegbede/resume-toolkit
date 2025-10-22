@@ -1,6 +1,5 @@
 """Tests for Cover Letter Generator."""
 
-
 import pytest
 
 
@@ -127,9 +126,7 @@ class TestCoverLetterGenerator:
             "linkedin": "linkedin.com/in/johndoe",
         }
 
-    def test_opening_paragraph_generation(
-        self, sample_company_research: dict
-    ) -> None:
+    def test_opening_paragraph_generation(self, sample_company_research: dict) -> None:
         """Test opening paragraph generation with company insights."""
         from cover_letter_generator.generator import generate_opening
 
@@ -179,14 +176,11 @@ class TestCoverLetterGenerator:
         # Should address key requirements
         key_skills = ["python", "react", "aws"]
         for skill in key_skills:
-            assert (
-                skill.lower() in body.lower()
-            ), f"Body should mention key skill: {skill}"
+            assert skill.lower() in body.lower(), f"Body should mention key skill: {skill}"
 
         # Should include specific metrics/achievements
         has_metrics = any(
-            metric in body
-            for metric in ["70%", "45%", "10x", "60%", "99.9%", "200ms"]
+            metric in body for metric in ["70%", "45%", "10x", "60%", "99.9%", "200ms"]
         )
         assert has_metrics, "Body should include specific metrics"
 
@@ -245,9 +239,7 @@ class TestCoverLetterGenerator:
         # Should be more reserved
         assert len(formal_opening) > 50, "Formal opening should be substantial"
 
-    def test_tone_adjustment_casual(
-        self, sample_company_research: dict
-    ) -> None:
+    def test_tone_adjustment_casual(self, sample_company_research: dict) -> None:
         """Test casual tone generation."""
         from cover_letter_generator.generator import generate_opening
 
@@ -283,9 +275,7 @@ class TestCoverLetterGenerator:
         skill_list_pattern = r"python,\s*react,\s*aws"
         import re
 
-        assert not re.search(
-            skill_list_pattern, body, re.IGNORECASE
-        ), "Should not stuff keywords"
+        assert not re.search(skill_list_pattern, body, re.IGNORECASE), "Should not stuff keywords"
 
     def test_length_control(
         self,
@@ -312,9 +302,7 @@ class TestCoverLetterGenerator:
 
         # Should be within target range (allowing some flexibility)
         # Lowered minimum to 220 to account for concise, well-written letters
-        assert (
-            220 <= word_count <= 600
-        ), f"Cover letter should be 220-600 words, got {word_count}"
+        assert 220 <= word_count <= 600, f"Cover letter should be 220-600 words, got {word_count}"
 
     def test_anecdote_selection_by_relevance(
         self, sample_jd_analysis: dict, sample_anecdotes: list[dict]
@@ -519,6 +507,4 @@ class TestCoverLetterGenerator:
         if "aws" in body.lower():
             requirements_mentioned += 1
 
-        assert (
-            requirements_mentioned >= 2
-        ), "Should address at least 2 key requirements"
+        assert requirements_mentioned >= 2, "Should address at least 2 key requirements"

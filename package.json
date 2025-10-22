@@ -20,7 +20,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,json}\"",
     "clean": "rm -rf dist coverage .vitest node_modules/.cache",
-    "prepare": "husky install || true",
+    "prepare": "husky",
     "pre-commit": "pre-commit run --all-files",
     "quality-gates": "npm run lint && npm run type-check && npm run test:coverage:check && echo '✅ All quality gates passed!'"
   },
@@ -57,6 +57,7 @@
     "eslint": "^9.13.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.31.0",
+    "husky": "^9.1.7",
     "prettier": "^3.3.3",
     "tsx": "^4.19.1",
     "typescript": "^5.6.3",

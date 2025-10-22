@@ -223,9 +223,7 @@ class TestPipelineFunnelCalculation:
         assert funnel["offer"] == 1
         assert funnel["rejected"] == 1
 
-    def test_calculate_funnel_percentages(
-        self, sample_applications: list[dict[str, Any]]
-    ) -> None:
+    def test_calculate_funnel_percentages(self, sample_applications: list[dict[str, Any]]) -> None:
         """Test funnel percentages are calculated correctly."""
         from dashboard_generator.generator import calculate_pipeline_funnel
 
@@ -292,9 +290,7 @@ class TestSuccessMetrics:
         # 4 out of 5 got responses (moved beyond applied)
         assert abs(metrics["response_rate"] - 80.0) < 0.1
 
-    def test_calculate_interview_rate(
-        self, sample_applications: list[dict[str, Any]]
-    ) -> None:
+    def test_calculate_interview_rate(self, sample_applications: list[dict[str, Any]]) -> None:
         """Test interview rate calculation."""
         from dashboard_generator.generator import calculate_success_metrics
 
@@ -465,9 +461,7 @@ class TestKeywordAnalysis:
         assert len(analysis["top_keywords_by_response"]) == 0
         assert len(analysis["high_performers"]) == 0
 
-    def test_keyword_combinations(
-        self, sample_keyword_performance: list[dict[str, Any]]
-    ) -> None:
+    def test_keyword_combinations(self, sample_keyword_performance: list[dict[str, Any]]) -> None:
         """Test analysis of keyword combinations."""
         from dashboard_generator.generator import analyze_keyword_performance
 
@@ -506,9 +500,7 @@ class TestVisualization:
         assert "Response Rate" in table or "response" in table.lower()
         assert "Interview Rate" in table or "interview" in table.lower()
 
-    def test_generate_keyword_chart(
-        self, sample_keyword_performance: list[dict[str, Any]]
-    ) -> None:
+    def test_generate_keyword_chart(self, sample_keyword_performance: list[dict[str, Any]]) -> None:
         """Test keyword performance chart."""
         from dashboard_generator.generator import generate_keyword_chart
 
@@ -553,7 +545,9 @@ class TestRecommendations:
         assert len(recommendations) > 0
         # Should mention top keyword
         all_recs = " ".join(recommendations)
-        assert "distributed systems" in all_recs or any("emphasize" in r.lower() for r in recommendations)
+        assert "distributed systems" in all_recs or any(
+            "emphasize" in r.lower() for r in recommendations
+        )
 
     def test_generate_timing_recommendations(self) -> None:
         """Test recommendations based on timing analysis."""

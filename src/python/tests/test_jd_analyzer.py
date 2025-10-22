@@ -1,6 +1,5 @@
 """Tests for Job Description Analyzer."""
 
-
 import pytest
 
 
@@ -132,8 +131,7 @@ class TestJDAnalyzer:
 
         # Should identify leadership keywords
         assert any(
-            "mentor" in skill.lower() or "lead" in skill.lower()
-            for skill in leadership_skills
+            "mentor" in skill.lower() or "lead" in skill.lower() for skill in leadership_skills
         )
         assert any("communication" in skill.lower() for skill in leadership_skills)
 
@@ -175,7 +173,7 @@ class TestJDAnalyzer:
 
         # Scores should be numeric
         for keyword, score in importance_scores.items():
-            assert isinstance(score, (int, float))
+            assert isinstance(score, int | float)
             assert 0 <= score <= 1  # Normalized scores
 
     def test_comprehensive_analysis(self, sample_jd_text: str) -> None:

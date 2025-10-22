@@ -33,7 +33,6 @@ class PDFParseError(Exception):
     """Custom exception for PDF parsing errors."""
 
 
-
 @dataclass
 class ResumeData:
     """Structured resume data."""
@@ -455,12 +454,8 @@ class ResumeParser:
                 if section_type == ResumeSection.EXPERIENCE:
                     experiences = parse_experience_section(content)
                     for exp in experiences:
-                        markdown_parts.append(
-                            f"### {exp['title']} | {exp['company']}"
-                        )
-                        markdown_parts.append(
-                            f"*{exp['start_date']} - {exp['end_date']}*"
-                        )
+                        markdown_parts.append(f"### {exp['title']} | {exp['company']}")
+                        markdown_parts.append(f"*{exp['start_date']} - {exp['end_date']}*")
                         markdown_parts.append("")
                         for resp in exp["responsibilities"]:
                             markdown_parts.append(f"- {resp}")
@@ -469,13 +464,9 @@ class ResumeParser:
                 elif section_type == ResumeSection.EDUCATION:
                     education_entries = parse_education_section(content)
                     for edu in education_entries:
-                        markdown_parts.append(
-                            f"### {edu['degree']} | {edu['institution']}"
-                        )
+                        markdown_parts.append(f"### {edu['degree']} | {edu['institution']}")
                         if edu["start_year"] and edu["end_year"]:
-                            markdown_parts.append(
-                                f"*{edu['start_year']} - {edu['end_year']}*"
-                            )
+                            markdown_parts.append(f"*{edu['start_year']} - {edu['end_year']}*")
                         if edu.get("gpa"):
                             markdown_parts.append(f"GPA: {edu['gpa']}")
                         markdown_parts.append("")

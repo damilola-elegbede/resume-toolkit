@@ -16,6 +16,7 @@ downloads/
 eggs/
 .eggs/
 lib/
+!src/cli/lib/
 lib64/
 parts/
 sdist/
@@ -96,3 +97,9 @@ dmypy.json
 
 # Editor directories
 .vscode-test
+
+# Coverage reports
+coverage.xml
+htmlcov/
+.coverage
+.coverage.*
