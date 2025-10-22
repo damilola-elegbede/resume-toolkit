@@ -47,11 +47,11 @@ print(json.dumps(result))
     let output = '';
     let errorOutput = '';
 
-    pythonProcess.stdout.on('data', (data) => {
+    pythonProcess.stdout.on('data', (data: Buffer) => {
       output += data.toString();
     });
 
-    pythonProcess.stderr.on('data', (data) => {
+    pythonProcess.stderr.on('data', (data: Buffer) => {
       errorOutput += data.toString();
     });
 
@@ -62,10 +62,10 @@ print(json.dumps(result))
       }
 
       try {
-        const result = JSON.parse(output);
+        const result = JSON.parse(output) as AnalysisResult;
         resolve(result);
       } catch (error) {
-        reject(new Error(`Failed to parse analysis result: ${error}`));
+        reject(new Error(`Failed to parse analysis result: ${String(error)}`));
       }
     });
 
@@ -222,12 +222,12 @@ export async function analyzeJobDescription(url: string): Promise<void> {
     spinner.succeed(`Analysis saved to ${chalk.green(outputPath)}`);
 
     // Display summary
-    console.log('\n' + chalk.bold('Analysis Summary:'));
-    console.log(`${chalk.blue('Technical Skills:')} ${analysis.technical_skills.length}`);
-    console.log(`${chalk.blue('Leadership Skills:')} ${analysis.leadership_skills.length}`);
-    console.log(`${chalk.blue('ATS Keywords:')} ${analysis.ats_keywords.length}`);
-    console.log(`${chalk.blue('Top Keywords:')} ${analysis.ats_keywords.slice(0, 5).join(', ')}`);
-    console.log(`\n${chalk.green('✓')} Full analysis saved to: ${outputPath}\n`);
+    console.info('\n' + chalk.bold('Analysis Summary:'));
+    console.info(`${chalk.blue('Technical Skills:')} ${analysis.technical_skills.length}`);
+    console.info(`${chalk.blue('Leadership Skills:')} ${analysis.leadership_skills.length}`);
+    console.info(`${chalk.blue('ATS Keywords:')} ${analysis.ats_keywords.length}`);
+    console.info(`${chalk.blue('Top Keywords:')} ${analysis.ats_keywords.slice(0, 5).join(', ')}`);
+    console.info(`\n${chalk.green('✓')} Full analysis saved to: ${outputPath}\n`);
   } catch (error) {
     spinner.fail('Failed to analyze job description');
 
@@ -261,7 +261,7 @@ export const analyzeJdCommand = new Command('analyze-jd')
   .action(async (url: string) => {
     try {
       await analyzeJobDescription(url);
-    } catch (error) {
+    } catch {
       process.exit(1);
     }
   });

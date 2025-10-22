@@ -19,7 +19,7 @@ export const ApplicationStatus = {
   WITHDRAWN: 'withdrawn',
 } as const;
 
-export type ApplicationStatus = (typeof ApplicationStatus)[keyof typeof ApplicationStatus];
+export type ApplicationStatusType = (typeof ApplicationStatus)[keyof typeof ApplicationStatus];
 
 export const EmploymentType = {
   FULL_TIME: 'Full-time',
@@ -29,7 +29,7 @@ export const EmploymentType = {
   FREELANCE: 'Freelance',
 } as const;
 
-export type EmploymentType = (typeof EmploymentType)[keyof typeof EmploymentType];
+export type EmploymentTypeType = (typeof EmploymentType)[keyof typeof EmploymentType];
 
 export const InterviewType = {
   PHONE: 'phone',
@@ -43,7 +43,7 @@ export const InterviewType = {
   PRESENTATION: 'presentation',
 } as const;
 
-export type InterviewType = (typeof InterviewType)[keyof typeof InterviewType];
+export type InterviewTypeType = (typeof InterviewType)[keyof typeof InterviewType];
 
 export const InterviewResult = {
   PASSED: 'passed',
@@ -52,7 +52,7 @@ export const InterviewResult = {
   CANCELLED: 'cancelled',
 } as const;
 
-export type InterviewResult = (typeof InterviewResult)[keyof typeof InterviewResult];
+export type InterviewResultType = (typeof InterviewResult)[keyof typeof InterviewResult];
 
 export const KeywordCategory = {
   TECHNICAL_SKILL: 'technical_skill',
@@ -65,7 +65,7 @@ export const KeywordCategory = {
   METHODOLOGY: 'methodology',
 } as const;
 
-export type KeywordCategory = (typeof KeywordCategory)[keyof typeof KeywordCategory];
+export type KeywordCategoryType = (typeof KeywordCategory)[keyof typeof KeywordCategory];
 
 // ============================================================================
 // ZOD SCHEMAS - APPLICATIONS
@@ -377,7 +377,7 @@ export type TopKeyword = z.infer<typeof TopKeywordSchema>;
 // ============================================================================
 
 export interface QueryFilters {
-  status?: ApplicationStatus;
+  status?: ApplicationStatusType;
   company?: string;
   limit?: number;
   offset?: number;
