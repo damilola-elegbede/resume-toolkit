@@ -140,9 +140,11 @@ function parseRequirements(text: string): string[] {
     const reqText = requirementsMatch[1];
 
     // Extract bullet points or numbered items
-    const bullets = reqText.match(/[•\-*\d+.]\s*(.+)/g);
-    if (bullets) {
-      requirements.push(...bullets.map((b) => b.replace(/^[•\-*\d+.]\s*/, '').trim()));
+    const matchesArray = Array.from(reqText.matchAll(/^(?:[\u2022•*-]|\d+\.)\s+(.*\S)\s*$/gm));
+    if (matchesArray.length > 0) {
+      requirements.push(
+        ...matchesArray.map((m) => m[1]).filter((v): v is string => v !== undefined)
+      );
     } else {
       // Split by newlines if no bullets
       const lines = reqText
@@ -162,7 +164,7 @@ function parseRequirements(text: string): string[] {
     ];
 
     skillPatterns.forEach((pattern) => {
-      const matches = text.matchAll(pattern);
+      const matches = Array.from(text.matchAll(pattern));
       for (const match of matches) {
         if (match[1] && match[1].trim()) {
           requirements.push(match[1].trim());
@@ -189,9 +191,9 @@ function parseBenefits(text: string): string[] {
     const benText = benefitsMatch[1];
 
     // Extract bullet points or numbered items
-    const bullets = benText.match(/[•\-*\d+.]\s*(.+)/g);
-    if (bullets) {
-      benefits.push(...bullets.map((b) => b.replace(/^[•\-*\d+.]\s*/, '').trim()));
+    const matchesArray = Array.from(benText.matchAll(/^(?:[\u2022•*-]|\d+\.)\s+(.*\S)\s*$/gm));
+    if (matchesArray.length > 0) {
+      benefits.push(...matchesArray.map((m) => m[1]).filter((v): v is string => v !== undefined));
     } else {
       // Split by newlines if no bullets
       const lines = benText

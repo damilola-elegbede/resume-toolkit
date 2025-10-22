@@ -6,7 +6,7 @@
 
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { chromium, type Browser } from 'playwright';
+import { chromium, type Browser, type BrowserContext } from 'playwright';
 
 export interface CompanyData {
   name: string;
@@ -48,6 +48,7 @@ export async function scrapeCompanyWebsite(url: string): Promise<WebsiteData> {
   }
 
   let browser: Browser | null = null;
+  let context: BrowserContext | null = null;
 
   try {
     // Launch browser with stealth settings
@@ -60,16 +61,18 @@ export async function scrapeCompanyWebsite(url: string): Promise<WebsiteData> {
       ],
     });
 
-    const page = await browser.newPage();
-
-    // Set realistic user agent and headers
-    await page.setExtraHTTPHeaders({
-      'User-Agent':
+    // Create context with user agent and headers
+    context = await browser.newContext({
+      userAgent:
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.9',
-      'Accept-Encoding': 'gzip, deflate, br',
+      extraHTTPHeaders: {
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+      },
     });
+
+    const page = await context.newPage();
 
     // Navigate to page
     const response = await page.goto(url, {
@@ -98,18 +101,12 @@ export async function scrapeCompanyWebsite(url: string): Promise<WebsiteData> {
     // Extract page content
     const content = await page.content();
 
-    await browser.close();
-
     return {
       url,
       content,
       scrapedAt: new Date().toISOString(),
     };
   } catch (error) {
-    if (browser) {
-      await browser.close();
-    }
-
     if (error instanceof Error) {
       if (error.message.includes('Timeout')) {
         throw new Error('Timeout exceeded - Page took too long to load');
@@ -118,6 +115,14 @@ export async function scrapeCompanyWebsite(url: string): Promise<WebsiteData> {
     }
 
     throw new Error('Failed to scrape website');
+  } finally {
+    // Ensure resources are always cleaned up
+    if (context) {
+      await context.close();
+    }
+    if (browser) {
+      await browser.close();
+    }
   }
 }
 
@@ -160,11 +165,20 @@ export async function fetchCompanyNews(
         const pubDate = $(element).find('pubDate').text();
         const source = $(element).find('source').text() || 'Google News';
 
+        // Validate and parse date safely to prevent crashes from malformed RSS feeds
+        let publishedAt = '';
+        if (pubDate) {
+          const parsedDate = new Date(pubDate);
+          publishedAt = isNaN(parsedDate.getTime())
+            ? ''
+            : parsedDate.toISOString().split('T')[0] || '';
+        }
+
         if (title && link) {
           articles.push({
             title,
             url: link,
-            publishedAt: pubDate ? new Date(pubDate).toISOString().split('T')[0] || pubDate : '',
+            publishedAt,
             source,
           });
         }

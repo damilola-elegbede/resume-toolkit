@@ -173,7 +173,7 @@ class TestJDAnalyzer:
 
         # Scores should be numeric
         for keyword, score in importance_scores.items():
-            assert isinstance(score, (int, float))
+            assert isinstance(score, int | float)
             assert 0 <= score <= 1  # Normalized scores
 
     def test_comprehensive_analysis(self, sample_jd_text: str) -> None:

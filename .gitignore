@@ -97,3 +97,9 @@ dmypy.json
 
 # Editor directories
 .vscode-test
+
+# Coverage reports
+coverage.xml
+htmlcov/
+.coverage
+.coverage.*
