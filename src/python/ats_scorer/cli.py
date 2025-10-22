@@ -264,36 +264,23 @@ def main(
             console.print(
                 f"  Nice-to-have match: {result.keyword_details.matched_nice_to_have:.0f}%"
             )
-            console.print(
-                f"  Matched keywords: {len(result.keyword_details.matched_keywords)}"
-            )
-            console.print(
-                f"  Missing keywords: {len(result.keyword_details.missing_keywords)}"
-            )
+            console.print(f"  Matched keywords: {len(result.keyword_details.matched_keywords)}")
+            console.print(f"  Missing keywords: {len(result.keyword_details.missing_keywords)}")
 
         if verbose and result.skills_details:
             console.print("\n[bold]Skills Alignment Details:[/bold]")
-            console.print(
-                f"  Technical skills: {result.skills_details.technical_match:.0f}%"
-            )
-            console.print(
-                f"  Leadership skills: {result.skills_details.leadership_match:.0f}%"
-            )
-            console.print(
-                f"  Domain expertise: {result.skills_details.domain_match:.0f}%"
-            )
+            console.print(f"  Technical skills: {result.skills_details.technical_match:.0f}%")
+            console.print(f"  Leadership skills: {result.skills_details.leadership_match:.0f}%")
+            console.print(f"  Domain expertise: {result.skills_details.domain_match:.0f}%")
 
         # Recommendations
         if result.recommendations:
             target_score = min(
-                result.overall_score
-                + sum(r.impact for r in result.recommendations[:3]),
+                result.overall_score + sum(r.impact for r in result.recommendations[:3]),
                 100,
             )
 
-            console.print(
-                f"\n[bold]Top Recommendations to reach {target_score:.0f}%:[/bold]\n"
-            )
+            console.print(f"\n[bold]Top Recommendations to reach {target_score:.0f}%:[/bold]\n")
 
             for i, rec in enumerate(result.recommendations[:5], 1):
                 category_color = {

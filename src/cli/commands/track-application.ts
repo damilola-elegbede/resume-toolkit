@@ -24,6 +24,7 @@ import {
   InterviewCreate,
   InterviewType,
   InterviewTypeType,
+  QueryFilters,
 } from '../db/types';
 
 // ============================================================================
@@ -270,9 +271,10 @@ export async function listApplications(options: ListApplicationsOptions): Promis
   const client = new TursoClient();
 
   try {
-    const filters: any = {};
+    const filters: QueryFilters = {};
 
     if (options.status) {
+      // Status already validated at boundary, safe to assign
       filters.status = options.status;
     }
 
@@ -503,7 +505,9 @@ const addCommand = new Command('add')
           const validStatuses = Object.values(ApplicationStatus);
           if (!validStatuses.includes(cmdOptions.status)) {
             spinner.fail('Invalid status');
-            console.error(chalk.red(`Error: Invalid status. Valid options: ${validStatuses.join(', ')}` ));
+            console.error(
+              chalk.red(`Error: Invalid status. Valid options: ${validStatuses.join(', ')}`)
+            );
             process.exit(1);
           }
         }
@@ -561,7 +565,9 @@ const updateCommand = new Command('update')
         const validStatuses = Object.values(ApplicationStatus);
         if (!validStatuses.includes(cmdOptions.status)) {
           spinner.fail('Invalid status');
-          console.error(chalk.red(`Error: Invalid status. Valid options: ${validStatuses.join(', ')}` ));
+          console.error(
+            chalk.red(`Error: Invalid status. Valid options: ${validStatuses.join(', ')}`)
+          );
           process.exit(1);
         }
       }
@@ -606,7 +612,9 @@ const listCommand = new Command('list')
         const validStatuses = Object.values(ApplicationStatus);
         if (!validStatuses.includes(cmdOptions.status)) {
           spinner.fail('Invalid status');
-          console.error(chalk.red(`Error: Invalid status. Valid options: ${validStatuses.join(', ')}` ));
+          console.error(
+            chalk.red(`Error: Invalid status. Valid options: ${validStatuses.join(', ')}`)
+          );
           process.exit(1);
         }
       }
@@ -670,7 +678,9 @@ const interviewCommand = new Command('interview')
         const validTypes = Object.values(InterviewType);
         if (!validTypes.includes(cmdOptions.type)) {
           spinner.fail('Invalid interview type');
-          console.error(chalk.red(`Error: Invalid interview type. Valid types: ${validTypes.join(', ')}` ));
+          console.error(
+            chalk.red(`Error: Invalid interview type. Valid types: ${validTypes.join(', ')}`)
+          );
           process.exit(1);
         }
       }

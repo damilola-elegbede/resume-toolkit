@@ -136,7 +136,6 @@ export async function fetchCompanyNews(
   // Bound limit parameter to reasonable range (1-20)
   limit = Math.max(1, Math.min(limit, 20));
 
-
   try {
     // Use Google News RSS as a simple alternative to paid APIs
     const searchQuery = encodeURIComponent(`${companyName} news`);
@@ -150,7 +149,7 @@ export async function fetchCompanyNews(
       timeout: 10000,
     });
 
-    const $ = cheerio.load(response.data, { xmlMode: true });
+    const $ = cheerio.load(response.data as string, { xmlMode: true });
     const articles: NewsArticle[] = [];
 
     $('item')

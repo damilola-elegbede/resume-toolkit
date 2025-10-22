@@ -10,9 +10,7 @@ from typing import Any, TypeVar, cast
 try:
     import libsql_client
 except ImportError:
-    raise ImportError(
-        "libsql_client is not installed. Install it with: pip install libsql-client"
-    )
+    raise ImportError("libsql_client is not installed. Install it with: pip install libsql-client")
 
 from .models import (
     ActiveApplication,
@@ -102,9 +100,7 @@ class TursoClient:
 
     async def connect(self) -> None:
         """Establish connection to Turso database"""
-        self.client = libsql_client.create_client(
-            url=self.database_url, auth_token=self.auth_token
-        )
+        self.client = libsql_client.create_client(url=self.database_url, auth_token=self.auth_token)
 
     async def close(self) -> None:
         """Close database connection"""
@@ -454,9 +450,7 @@ class TursoClient:
     # APPLICATION STAGE OPERATIONS
     # ========================================================================
 
-    async def get_application_stages(
-        self, application_id: int
-    ) -> list[ApplicationStage]:
+    async def get_application_stages(self, application_id: int) -> list[ApplicationStage]:
         """Get stage history for an application"""
         query = """
             SELECT * FROM application_stages
@@ -619,9 +613,7 @@ class TursoClient:
     # VIEW QUERIES
     # ========================================================================
 
-    async def get_active_applications(
-        self, limit: int = 100
-    ) -> list[ActiveApplication]:
+    async def get_active_applications(self, limit: int = 100) -> list[ActiveApplication]:
         """Get active applications with interview counts"""
         query = "SELECT * FROM v_active_applications LIMIT ?"
         result = await self._ensure_connected().execute(query, [limit])

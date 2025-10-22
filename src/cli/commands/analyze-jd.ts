@@ -79,7 +79,9 @@ print(json.dumps(result))
       clearTimeout(timeout);
 
       // Already rejected by timeout
-      if (timedOut) { return; }
+      if (timedOut) {
+        return;
+      }
 
       if (code !== 0) {
         reject(new Error(`Python analyzer failed: ${errorOutput}`));
