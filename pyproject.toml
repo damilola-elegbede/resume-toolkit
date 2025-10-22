@@ -45,6 +45,8 @@ dev = [
     "fpdf2>=2.7.9",
     "Pillow>=10.0.0",
     "types-PyYAML>=6.0.0",
+    "types-Pillow>=10.0.0",
+    "types-click>=7.1.0",
 ]
 
 [project.scripts]
@@ -148,6 +150,18 @@ module = [
     "pdfplumber.*",
     "PyPDF2.*",
     "libsql_client.*",
+    "pytest.*",
+    "rich.*",
+    "fpdf.*",
+    "PIL.*",
+    "jd_analyzer.*",
+    "resume_optimizer.*",
+    "pdf_parser.*",
+    "ats_scorer.*",
+    "interview_prep_generator.*",
+    "cover_letter_generator.*",
+    "company_analyzer.*",
+    "dashboard_generator.*",
 ]
 ignore_missing_imports = true
 

@@ -133,7 +133,7 @@ class TursoClient:
     def _parse_model(self, row: Any, model: type[T]) -> T:
         """Parse database row into Pydantic model"""
         if row is None:
-            return None
+            raise ValueError(f"Cannot parse None row into {model.__name__}")
         data = self._row_to_dict(row)
         return model(**data)
 
@@ -258,7 +258,7 @@ class TursoClient:
             ValueError: If order_by contains invalid column or direction
         """
         conditions = []
-        params = []
+        params: list[Any] = []
 
         if status:
             conditions.append("status = ?")
@@ -344,7 +344,7 @@ class TursoClient:
         """
         query = "DELETE FROM applications WHERE id = ?"
         result = await self._ensure_connected().execute(query, [application_id])
-        return result.rows_affected > 0
+        return bool(result.rows_affected > 0)
 
     # ========================================================================
     # INTERVIEW OPERATIONS
@@ -483,7 +483,7 @@ class TursoClient:
             List of metrics ordered by date descending
         """
         conditions = []
-        params = []
+        params: list[Any] = []
 
         if start_date:
             conditions.append("metric_date >= ?")
