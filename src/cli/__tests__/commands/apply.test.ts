@@ -14,6 +14,9 @@ import * as applyModule from '../../commands/apply';
 import { applyCommand, applyWorkflow, ApplyOptions, WorkflowResult } from '../../commands/apply';
 
 describe('apply command', () => {
+  // Mock Date to ensure consistent test results
+  const MOCK_DATE = new Date('2025-10-21T12:00:00Z');
+
   const mockJDData = {
     url: 'https://jobs.company.com/position/123',
     company: 'TechCorp Inc',
@@ -113,6 +116,10 @@ describe('apply command', () => {
   };
 
   beforeEach(() => {
+    // Mock system time for consistent date-based tests
+    vi.useFakeTimers();
+    vi.setSystemTime(MOCK_DATE);
+
     // Clear all mocks but preserve mock implementations
     vi.clearAllMocks();
 
@@ -165,6 +172,7 @@ describe('apply command', () => {
   });
 
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
