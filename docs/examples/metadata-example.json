@@ -1,0 +1,54 @@
+{
+  "applicationId": "app_abc123",
+  "company": "TechCorp Inc.",
+  "position": "Senior Full Stack Engineer",
+  "appliedDate": "2025-10-21",
+  "status": "interview",
+  "jobUrl": "https://jobs.techcorp.com/posting/12345",
+  "resumeVersion": "resume_v23",
+  "atsScore": 87,
+  "timeline": [
+    {
+      "date": "2025-10-21",
+      "event": "Applied",
+      "notes": "Via company portal"
+    },
+    {
+      "date": "2025-10-23",
+      "event": "Screening scheduled",
+      "notes": "Phone screen with recruiter"
+    },
+    {
+      "date": "2025-10-25",
+      "event": "Screening completed",
+      "notes": "Positive feedback"
+    },
+    {
+      "date": "2025-10-28",
+      "event": "Technical interview scheduled",
+      "notes": "System design focus"
+    }
+  ],
+  "nextSteps": [
+    {
+      "action": "Prepare system design",
+      "dueDate": "2025-10-27"
+    },
+    {
+      "action": "Research interviewer",
+      "dueDate": "2025-10-27"
+    }
+  ],
+  "contacts": [
+    {
+      "name": "Sarah Johnson",
+      "role": "Recruiter",
+      "email": "sarah@techcorp.com"
+    },
+    {
+      "name": "Mike Chen",
+      "role": "Hiring Manager",
+      "email": "mike@techcorp.com"
+    }
+  ]
+}
