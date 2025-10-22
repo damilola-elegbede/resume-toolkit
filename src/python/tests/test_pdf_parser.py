@@ -370,8 +370,8 @@ class TestPDFExtraction:
 
     def test_parse_multipage_resume(self, multipage_resume_pdf: Path) -> None:
         """Test parsing of multi-page resume PDF."""
-        from pdf_parser.parser import ResumeParser
         import pdfplumber
+        from pdf_parser.parser import ResumeParser
 
         # Verify it's actually multi-page
         with pdfplumber.open(multipage_resume_pdf) as pdf:
@@ -389,7 +389,7 @@ class TestPDFExtraction:
 
     def test_handle_scanned_pdf_warning(self, scanned_resume_pdf: Path) -> None:
         """Test that scanned PDFs (images) are detected and handled."""
-        from pdf_parser.parser import ResumeParser, PDFParseError
+        from pdf_parser.parser import PDFParseError, ResumeParser
 
         parser = ResumeParser()
 

@@ -174,17 +174,17 @@ def multipage_resume_pdf(tmp_path: Path) -> Path:
     # Add multiple positions
     for i in range(5):
         pdf.set_font("Arial", "B", 12)
-        pdf.cell(0, 7, f"Position {i+1} - Company {i+1}", ln=True)
+        pdf.cell(0, 7, f"Position {i + 1} - Company {i + 1}", ln=True)
         pdf.set_font("Arial", "I", 10)
-        pdf.cell(0, 5, f"201{i} - 201{i+2} | Location", ln=True)
+        pdf.cell(0, 5, f"201{i} - 201{i + 2} | Location", ln=True)
         pdf.set_font("Arial", "", 11)
         pdf.multi_cell(
             0,
             5,
-            f"- Accomplishment 1 for position {i+1}\n"
-            f"- Accomplishment 2 for position {i+1}\n"
-            f"- Accomplishment 3 for position {i+1}\n"
-            f"- Accomplishment 4 for position {i+1}",
+            f"- Accomplishment 1 for position {i + 1}\n"
+            f"- Accomplishment 2 for position {i + 1}\n"
+            f"- Accomplishment 3 for position {i + 1}\n"
+            f"- Accomplishment 4 for position {i + 1}",
         )
         pdf.ln(2)
 
