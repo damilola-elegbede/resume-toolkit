@@ -354,23 +354,54 @@ class TestResumeParser:
 class TestPDFExtraction:
     """Integration tests for PDF extraction (requires pdfplumber)."""
 
-    def test_extract_text_from_valid_pdf(self, tmp_path: Path) -> None:
-        """Test text extraction from a valid PDF.
+    def test_extract_text_from_valid_pdf(self, sample_resume_pdf: Path) -> None:
+        """Test text extraction from a valid PDF."""
+        from pdf_parser.parser import ResumeParser
 
-        Note: This test requires a sample PDF file.
-        In real scenarios, we'd use a fixture with an actual PDF.
-        """
-        # This test would need a real PDF file
-        # For now, we'll skip if no sample PDF is available
-        pytest.skip("Requires sample PDF file - implement with real PDF fixture")
+        parser = ResumeParser()
+        result = parser.parse_pdf(sample_resume_pdf)
 
-    def test_parse_multipage_resume(self) -> None:
+        # Verify expected content is present
+        content = result.get("content", "")
+        assert "John Doe" in content
+        assert "john.doe@email.com" in content
+        assert "Senior Software Engineer" in content
+        assert "TechCorp Inc" in content or "TechCorp" in content
+
+    def test_parse_multipage_resume(self, multipage_resume_pdf: Path) -> None:
         """Test parsing of multi-page resume PDF."""
-        pytest.skip("Requires multi-page PDF fixture")
+        from pdf_parser.parser import ResumeParser
+        import pdfplumber
 
-    def test_handle_scanned_pdf_warning(self) -> None:
-        """Test that scanned PDFs (images) are detected and warned about."""
-        pytest.skip("Requires scanned PDF fixture")
+        # Verify it's actually multi-page
+        with pdfplumber.open(multipage_resume_pdf) as pdf:
+            assert len(pdf.pages) == 2
+
+        # Parse the resume
+        parser = ResumeParser()
+        result = parser.parse_pdf(multipage_resume_pdf)
+        content = result.get("content", "")
+
+        # Verify content from both pages
+        assert "Jane Smith" in content
+        assert "Position 1" in content  # From page 1
+        assert "Ph.D" in content or "PhD" in content  # From page 2
+
+    def test_handle_scanned_pdf_warning(self, scanned_resume_pdf: Path) -> None:
+        """Test that scanned PDFs (images) are detected and handled."""
+        from pdf_parser.parser import ResumeParser, PDFParseError
+
+        parser = ResumeParser()
+
+        # Scanned PDFs should either raise an error or return minimal text
+        try:
+            result = parser.parse_pdf(scanned_resume_pdf)
+            content = result.get("content", "")
+            # If it doesn't raise an error, it should have very little text
+            assert len(content.strip()) < 100  # Should be mostly empty
+        except PDFParseError as e:
+            # Or it should raise an error about no text content
+            assert "No text content" in str(e)
 
 
 @pytest.mark.unit
