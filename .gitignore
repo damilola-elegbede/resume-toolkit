@@ -88,6 +88,8 @@ lerna-debug.log*
 .tmp/
 tmp/
 temp/
+*.backup
+*.bak
 
 # Type checking
 .mypy_cache/

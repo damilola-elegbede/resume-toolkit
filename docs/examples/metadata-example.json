@@ -1,0 +1,58 @@
+{
+  "id": "app_abc123",
+  "resume_id": "resume_v23",
+  "job_id": "job_techcorp_12345",
+  "cover_letter_id": "cl_techcorp_001",
+  "company_id": "company_techcorp",
+  "applied_date": "2025-10-21",
+  "status": "interview",
+  "status_updated_at": "2025-10-28T14:30:00Z",
+  "application_url": "https://jobs.techcorp.com/posting/12345",
+  "confirmation_number": "TC-APP-2025-0421",
+  "referral_source": "LinkedIn",
+  "screening_date": "2025-10-25",
+  "interview_dates": [
+    {
+      "date": "2025-10-25",
+      "type": "screening",
+      "interviewer": "Sarah Johnson"
+    },
+    {
+      "date": "2025-10-28",
+      "type": "technical",
+      "interviewer": "Mike Chen"
+    },
+    {
+      "date": "2025-10-30",
+      "type": "behavioral",
+      "interviewer": "Alex Rivera"
+    }
+  ],
+  "offer_date": null,
+  "offer_deadline": null,
+  "rejection_date": null,
+  "last_followup_date": "2025-10-23",
+  "next_followup_date": "2025-11-02",
+  "followup_count": 1,
+  "resume_file_path": ".resume-toolkit/applications/techcorp-20251021/optimized-resume.pdf",
+  "cover_letter_file_path": ".resume-toolkit/applications/techcorp-20251021/cover-letter.pdf",
+  "notes": "Applied via company portal. Positive feedback from screening - recruiter mentioned strong system design background. Technical interview scheduled with emphasis on distributed systems. Hiring manager Mike Chen has background in large-scale infrastructure. Prepare questions about their migration to microservices.",
+  "interview_feedback": [
+    {
+      "date": "2025-10-25",
+      "interviewer": "Sarah Johnson",
+      "type": "screening",
+      "feedback": "Positive. Strong communication skills. Experience aligns well with role requirements.",
+      "sentiment": "positive"
+    },
+    {
+      "date": "2025-10-28",
+      "interviewer": "Mike Chen",
+      "type": "technical",
+      "feedback": "Solid system design approach. Good understanding of trade-offs. Asked thoughtful questions about team dynamics.",
+      "sentiment": "positive"
+    }
+  ],
+  "created_at": "2025-10-21T09:15:00Z",
+  "updated_at": "2025-10-28T16:45:00Z"
+}
