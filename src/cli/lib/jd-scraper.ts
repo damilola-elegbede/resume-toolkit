@@ -105,13 +105,14 @@ function identifyJobBoard(url: string): string | null {
 
 /**
  * Extract text from page using multiple selectors
+ * FIXED: Use modern Playwright locator API instead of deprecated page.$()
  */
 async function extractText(page: Page, selectors: string[]): Promise<string> {
   for (const selector of selectors) {
     try {
-      const element = await page.$(selector);
-      if (element) {
-        const text = await element.textContent();
+      const locator = page.locator(selector).first();
+      if (await locator.count()) {
+        const text = await locator.innerText({ timeout: 3000 }).catch(() => '');
         if (text && text.trim()) {
           return text.trim();
         }
@@ -206,6 +207,7 @@ function parseBenefits(text: string): string[] {
 
 /**
  * Scrape job description from URL
+ * FIXED: Improved browser cleanup, user-agent handling, and selector waiting
  */
 export async function scrapeJobDescription(url: string): Promise<JobDescriptionData> {
   // Validate URL
@@ -227,7 +229,13 @@ export async function scrapeJobDescription(url: string): Promise<JobDescriptionD
     );
   }
 
+  // Get configuration - TypeScript knows boardType is not null here
   const config = JOB_BOARDS[boardType];
+  if (!config) {
+    throw new Error('Job board configuration not found');
+  }
+
+  const selectors = config.selectors;
   let browser: Browser | null = null;
 
   try {
@@ -237,15 +245,18 @@ export async function scrapeJobDescription(url: string): Promise<JobDescriptionD
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
     });
 
-    const page = await browser.newPage();
-
-    // Set realistic user agent to avoid detection
-    await page.setExtraHTTPHeaders({
-      'User-Agent':
+    // FIXED: Set userAgent at context level instead of headers
+    const context = await browser.newContext({
+      userAgent:
         'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.9',
+      locale: 'en-US',
+      extraHTTPHeaders: {
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
     });
+
+    const page = await context.newPage();
 
     // Navigate to page
     const response = await page.goto(url, {
@@ -269,14 +280,23 @@ export async function scrapeJobDescription(url: string): Promise<JobDescriptionD
       throw new Error(`HTTP ${status} - Failed to fetch job description`);
     }
 
-    // Wait for content to load
-    await page.waitForTimeout(2000);
+    // FIXED: Replace fixed timeout with selector-based waiting
+    // Wait for description to appear (try each selector briefly)
+    let ready = false;
+    for (const sel of selectors.description) {
+      try {
+        await page.waitForSelector(sel, { timeout: 5000 });
+        ready = true;
+        break;
+      } catch {
+        // Try next selector
+      }
+    }
+    if (!ready) {
+      throw new Error('Timed out waiting for job description content');
+    }
 
     // Extract data
-    if (!config) {
-      throw new Error('Job board configuration not found');
-    }
-    const selectors = config.selectors;
     const company = await extractText(page, selectors.company);
     const position = await extractText(page, selectors.position);
     const description = await extractText(page, selectors.description);
@@ -289,8 +309,6 @@ export async function scrapeJobDescription(url: string): Promise<JobDescriptionD
     const requirements = parseRequirements(description);
     const benefits = parseBenefits(description);
 
-    await browser.close();
-
     return {
       url,
       company: company || 'Unknown Company',
@@ -301,10 +319,6 @@ export async function scrapeJobDescription(url: string): Promise<JobDescriptionD
       scrapedAt: new Date().toISOString(),
     };
   } catch (error) {
-    if (browser) {
-      await browser.close();
-    }
-
     if (error instanceof Error) {
       // Re-throw known errors
       if (error.message.includes('Timeout')) {
@@ -314,5 +328,10 @@ export async function scrapeJobDescription(url: string): Promise<JobDescriptionD
     }
 
     throw new Error('Failed to scrape job description');
+  } finally {
+    // FIXED: Consolidated cleanup in finally block
+    if (browser) {
+      await browser.close();
+    }
   }
 }

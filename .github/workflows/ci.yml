@@ -163,6 +163,8 @@ jobs:
             coverage/
             htmlcov/
             coverage.xml
+          retention-days: 14
+          compression-level: 6
         if: always()
 
   build:
@@ -206,6 +208,8 @@ jobs:
           path: |
             dist/
             build/
+          retention-days: 14
+          compression-level: 6
 
   all-checks-passed:
     name: All Checks Passed

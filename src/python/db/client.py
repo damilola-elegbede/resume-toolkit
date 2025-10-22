@@ -4,12 +4,15 @@ Provides type-safe database operations using libsql_client and Pydantic models.
 """
 
 import os
-from typing import Any, TypeVar
+from collections.abc import Mapping
+from typing import Any, TypeVar, cast
 
 try:
     import libsql_client
 except ImportError:
-    raise ImportError("libsql_client is not installed. Install it with: pip install libsql-client")
+    raise ImportError(
+        "libsql_client is not installed. Install it with: pip install libsql-client"
+    )
 
 from .models import (
     ActiveApplication,
@@ -30,6 +33,19 @@ from .models import (
 )
 
 T = TypeVar("T")
+
+# Whitelist of allowed columns for ORDER BY to prevent SQL injection
+ALLOWED_ORDER_COLUMNS = {
+    "id",
+    "company",
+    "position",
+    "applied_date",
+    "status",
+    "created_at",
+    "updated_at",
+    "last_contact_date",
+    "next_followup_date",
+}
 
 
 class TursoClient:
@@ -86,7 +102,9 @@ class TursoClient:
 
     async def connect(self) -> None:
         """Establish connection to Turso database"""
-        self.client = libsql_client.create_client(url=self.database_url, auth_token=self.auth_token)
+        self.client = libsql_client.create_client(
+            url=self.database_url, auth_token=self.auth_token
+        )
 
     async def close(self) -> None:
         """Close database connection"""
@@ -112,8 +130,9 @@ class TursoClient:
     def _row_to_dict(self, row: Any) -> dict[str, Any]:
         """Convert database row to dictionary"""
         if hasattr(row, "_asdict"):
-            return row._asdict()
-        return dict(row)
+            raw = row._asdict()
+            return dict(cast(Mapping[str, Any], raw))
+        return dict(cast(Mapping[str, Any], row))
 
     def _parse_model(self, row: Any, model: type[T]) -> T:
         """Parse database row into Pydantic model"""
@@ -125,6 +144,37 @@ class TursoClient:
     def _parse_models(self, rows: list[Any], model: type[T]) -> list[T]:
         """Parse multiple database rows into Pydantic models"""
         return [self._parse_model(row, model) for row in rows]
+
+    def _validate_order_by(self, order_by: str) -> str:
+        """
+        Validate and sanitize ORDER BY clause to prevent SQL injection.
+
+        Args:
+            order_by: ORDER BY clause (e.g., "applied_date DESC" or "company")
+
+        Returns:
+            Sanitized ORDER BY clause
+
+        Raises:
+            ValueError: If column or direction is invalid
+        """
+        parts = order_by.split()
+        if len(parts) not in [1, 2]:
+            raise ValueError(f"Invalid order_by format: {order_by}")
+
+        column = parts[0]
+        direction = parts[1].upper() if len(parts) == 2 else "ASC"
+
+        if column not in ALLOWED_ORDER_COLUMNS:
+            raise ValueError(
+                f"Invalid column for ordering: {column}. "
+                f"Allowed columns: {', '.join(sorted(ALLOWED_ORDER_COLUMNS))}"
+            )
+
+        if direction not in ["ASC", "DESC"]:
+            raise ValueError(f"Invalid direction: {direction}. Must be ASC or DESC")
+
+        return f"{column} {direction}"
 
     # ========================================================================
     # APPLICATION OPERATIONS
@@ -203,10 +253,13 @@ class TursoClient:
             company: Filter by company name (case-insensitive partial match)
             limit: Maximum number of results
             offset: Number of results to skip
-            order_by: SQL ORDER BY clause
+            order_by: SQL ORDER BY clause (column name with optional ASC/DESC)
 
         Returns:
             List of applications
+
+        Raises:
+            ValueError: If order_by contains invalid column or direction
         """
         conditions = []
         params = []
@@ -221,10 +274,13 @@ class TursoClient:
 
         where_clause = f"WHERE {' AND '.join(conditions)}" if conditions else ""
 
+        # Validate and sanitize ORDER BY to prevent SQL injection
+        sanitized_order_by = self._validate_order_by(order_by)
+
         query = f"""
             SELECT * FROM applications
             {where_clause}
-            ORDER BY {order_by}
+            ORDER BY {sanitized_order_by}
             LIMIT ? OFFSET ?
         """
 
@@ -398,7 +454,9 @@ class TursoClient:
     # APPLICATION STAGE OPERATIONS
     # ========================================================================
 
-    async def get_application_stages(self, application_id: int) -> list[ApplicationStage]:
+    async def get_application_stages(
+        self, application_id: int
+    ) -> list[ApplicationStage]:
         """Get stage history for an application"""
         query = """
             SELECT * FROM application_stages
@@ -414,7 +472,10 @@ class TursoClient:
     # ========================================================================
 
     async def get_metrics(
-        self, start_date: str | None = None, end_date: str | None = None, limit: int = 30
+        self,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        limit: int = 30,
     ) -> list[Metrics]:
         """
         Get metrics for date range.
@@ -558,7 +619,9 @@ class TursoClient:
     # VIEW QUERIES
     # ========================================================================
 
-    async def get_active_applications(self, limit: int = 100) -> list[ActiveApplication]:
+    async def get_active_applications(
+        self, limit: int = 100
+    ) -> list[ActiveApplication]:
         """Get active applications with interview counts"""
         query = "SELECT * FROM v_active_applications LIMIT ?"
         result = await self._ensure_connected().execute(query, [limit])

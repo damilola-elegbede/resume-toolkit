@@ -93,9 +93,8 @@ export async function scrapeCompanyWebsite(url: string): Promise<WebsiteData> {
       throw new Error(`HTTP ${status} - Failed to fetch page`);
     }
 
-    // Wait for content to load
-    await page.waitForTimeout(2000);
-
+    // Wait for DOM to be fully loaded
+    await page.waitForLoadState('domcontentloaded');
     // Extract page content
     const content = await page.content();
 
@@ -133,6 +132,10 @@ export async function fetchCompanyNews(
   if (!companyName || companyName.trim().length === 0) {
     return [];
   }
+
+  // Bound limit parameter to reasonable range (1-20)
+  limit = Math.max(1, Math.min(limit, 20));
+
 
   try {
     // Use Google News RSS as a simple alternative to paid APIs
