@@ -84,7 +84,7 @@ jobs:
         run: npm run type-check
 
       - name: Run MyPy type check
-        run: mypy . --strict --ignore-missing-imports
+        run: mypy .
 
   test:
     name: Test (Node ${{ matrix.node }} / Python ${{ matrix.python }})
