@@ -150,21 +150,21 @@ def save_report_to_markdown(
 @click.option(
     "--resume",
     "-r",
-    type=click.Path(exists=True, path_type=Path),
+    type=click.Path(exists=True, path_type=Path),  # type: ignore[type-var]
     required=True,
     help="Path to resume file (markdown or text)",
 )
 @click.option(
     "--job-description",
     "--jd",
-    type=click.Path(exists=True, path_type=Path),
+    type=click.Path(exists=True, path_type=Path),  # type: ignore[type-var]
     required=True,
     help="Path to job description file",
 )
 @click.option(
     "--output",
     "-o",
-    type=click.Path(path_type=Path),
+    type=click.Path(path_type=Path),  # type: ignore[type-var]
     help="Path to save report markdown (optional)",
 )
 @click.option(

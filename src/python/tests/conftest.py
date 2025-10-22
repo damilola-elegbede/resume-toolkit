@@ -250,7 +250,7 @@ def scanned_resume_pdf(tmp_path: Path) -> Path:
     y_pos = 50
     for line in range(20):
         # Simulate text lines with rectangles
-        draw.rectangle([50, y_pos, 750, y_pos + 15], fill="black")
+        draw.rectangle((50, y_pos, 750, y_pos + 15), fill="black")
         y_pos += 40
 
     # Save image temporarily
