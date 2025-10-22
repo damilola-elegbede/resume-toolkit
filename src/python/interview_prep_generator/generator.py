@@ -38,9 +38,7 @@ def extract_metrics(text: str) -> list[str]:
     metrics.extend(multipliers)
 
     # Find time improvements
-    time_patterns = re.findall(
-        r"\d+\s*(hours?|minutes?|seconds?|days?|weeks?|months?)", text
-    )
+    time_patterns = re.findall(r"\d+\s*(hours?|minutes?|seconds?|days?|weeks?|months?)", text)
     metrics.extend(time_patterns)
 
     # Find dollar amounts
@@ -60,8 +58,7 @@ def format_star_answer(anecdote: dict) -> str:
 
     # Check if already in STAR format
     has_star_markers = all(
-        marker in content
-        for marker in ["Situation:", "Task:", "Action:", "Result:"]
+        marker in content for marker in ["Situation:", "Task:", "Action:", "Result:"]
     )
 
     if has_star_markers:
@@ -125,9 +122,7 @@ def format_star_answer(anecdote: dict) -> str:
     return "\n\n".join(star_parts)
 
 
-def match_anecdotes_to_questions(
-    questions: list[str], anecdotes: list[dict]
-) -> list[dict]:
+def match_anecdotes_to_questions(questions: list[str], anecdotes: list[dict]) -> list[dict]:
     """Match anecdotes to behavioral questions based on relevance."""
     matches = []
 
@@ -152,9 +147,7 @@ def match_anecdotes_to_questions(
 
             # Check content match
             content = anecdote.get("content", "").lower()
-            keyword_matches = sum(
-                1 for word in question_lower.split() if word in content
-            )
+            keyword_matches = sum(1 for word in question_lower.split() if word in content)
             score += keyword_matches * 0.5
 
             if score > best_score:
@@ -172,9 +165,7 @@ def match_anecdotes_to_questions(
     return matches
 
 
-def generate_technical_questions(
-    jd_analysis: dict, anecdotes: list[dict]
-) -> list[dict]:
+def generate_technical_questions(jd_analysis: dict, anecdotes: list[dict]) -> list[dict]:
     """Generate technical questions based on JD requirements."""
     questions = []
 
@@ -273,9 +264,7 @@ def generate_technical_questions(
     return questions[:8]  # Return top 8 technical questions
 
 
-def generate_behavioral_questions(
-    jd_analysis: dict, anecdotes: list[dict]
-) -> list[dict]:
+def generate_behavioral_questions(jd_analysis: dict, anecdotes: list[dict]) -> list[dict]:
     """Generate behavioral questions with STAR answers."""
     questions = []
 
@@ -292,11 +281,13 @@ def generate_behavioral_questions(
 
     # Add leadership questions for senior roles
     if seniority in ["senior", "lead", "staff", "principal", "director", "vp"]:
-        behavioral_prompts.extend([
-            "Describe your experience managing underperforming team members",
-            "Tell me about a time you had to influence without authority",
-            "How do you handle disagreements with other leaders or stakeholders?",
-        ])
+        behavioral_prompts.extend(
+            [
+                "Describe your experience managing underperforming team members",
+                "Tell me about a time you had to influence without authority",
+                "How do you handle disagreements with other leaders or stakeholders?",
+            ]
+        )
 
     # Match questions to anecdotes
     matches = match_anecdotes_to_questions(behavioral_prompts, anecdotes)
@@ -315,9 +306,7 @@ def generate_behavioral_questions(
     return questions
 
 
-def generate_company_specific_questions(
-    company_research: dict, jd_analysis: dict
-) -> list[dict]:
+def generate_company_specific_questions(company_research: dict, jd_analysis: dict) -> list[dict]:
     """Generate company-specific questions."""
     questions = []
 
@@ -330,9 +319,7 @@ def generate_company_specific_questions(
     answer_parts = ["**Your Answer:**\n"]
 
     if recent_news:
-        answer_parts.append(
-            f"\"I'm excited about {company}'s recent {recent_news[0].lower()}. "
-        )
+        answer_parts.append(f"\"I'm excited about {company}'s recent {recent_news[0].lower()}. ")
     else:
         answer_parts.append(f"\"I'm excited about the opportunity at {company}. ")
 
@@ -350,24 +337,18 @@ def generate_company_specific_questions(
         "Having followed your growth, I'm impressed by [specific aspect] and excited to contribute to [specific goal].\""
     )
 
-    questions.append(
-        {"question": f"Why {company}?", "answer": "".join(answer_parts)}
-    )
+    questions.append({"question": f"Why {company}?", "answer": "".join(answer_parts)})
 
     # What interests you about this role?
     if jd_analysis.get("domain_expertise"):
         domains = jd_analysis.get("domain_expertise", [])[:2]
-        role_answer = f"**Your Answer:**\n\"This role combines my strengths in {' and '.join(domains)}. I'm particularly excited about the opportunity to [specific responsibility from JD]. Based on my experience with [relevant achievement], I know I can make an immediate impact.\""
-        questions.append(
-            {"question": "What interests you about this role?", "answer": role_answer}
-        )
+        role_answer = f'**Your Answer:**\n"This role combines my strengths in {" and ".join(domains)}. I\'m particularly excited about the opportunity to [specific responsibility from JD]. Based on my experience with [relevant achievement], I know I can make an immediate impact."'
+        questions.append({"question": "What interests you about this role?", "answer": role_answer})
 
     return questions
 
 
-def generate_questions_to_ask(
-    company_research: dict, jd_analysis: dict
-) -> dict[str, list[str]]:
+def generate_questions_to_ask(company_research: dict, jd_analysis: dict) -> dict[str, list[str]]:
     """Generate thoughtful questions to ask interviewers."""
     questions: dict[str, list[str]] = {"technical": [], "culture": [], "strategic": []}
 
@@ -423,9 +404,7 @@ def generate_questions_to_ask(
     return questions
 
 
-def extract_key_talking_points(
-    anecdotes: list[dict], jd_analysis: dict
-) -> list[str]:
+def extract_key_talking_points(anecdotes: list[dict], jd_analysis: dict) -> list[str]:
     """Extract key talking points from anecdotes."""
     talking_points = []
 
@@ -480,9 +459,7 @@ def generate_interview_prep(
     # Generate all sections
     technical_questions = generate_technical_questions(jd_analysis, anecdotes)
     behavioral_questions = generate_behavioral_questions(jd_analysis, anecdotes)
-    company_questions = generate_company_specific_questions(
-        company_research, jd_analysis
-    )
+    company_questions = generate_company_specific_questions(company_research, jd_analysis)
     questions_to_ask = generate_questions_to_ask(company_research, jd_analysis)
     talking_points = extract_key_talking_points(anecdotes, jd_analysis)
 

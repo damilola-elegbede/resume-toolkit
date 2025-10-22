@@ -30,8 +30,7 @@ def detect_green_flags(data: dict[str, Any]) -> list[str]:
     for article in news:
         title = article.get("title", "").lower()
         if any(
-            keyword in title
-            for keyword in ["funding", "raises", "series", "investment", "capital"]
+            keyword in title for keyword in ["funding", "raises", "series", "investment", "capital"]
         ):
             green_flags.append(f"Recent funding: {article.get('title', '')}")
 
@@ -264,9 +263,7 @@ def synthesize_interview_insights(data: dict[str, Any]) -> dict[str, Any]:
         questions.append("What's the product roadmap looking like for the next year?")
 
     if "growth" in website_content or "scaling" in website_content:
-        questions.append(
-            "As the company scales, how is the engineering culture being preserved?"
-        )
+        questions.append("As the company scales, how is the engineering culture being preserved?")
 
     insights["questions_to_ask"] = questions[:7]
 

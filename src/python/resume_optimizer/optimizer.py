@@ -189,9 +189,7 @@ def rewrite_bullet_with_keywords(bullet: str, keywords: list[str]) -> str:
         # Insert after purpose clause
         parts = re.split(r"(\s+(?:to|for)\s+)", bullet, maxsplit=1)
         if len(parts) >= 3:
-            enhanced = (
-                f"{parts[0]}{parts[1]}{parts[2]} leveraging {', '.join(keywords_to_add)}"
-            )
+            enhanced = f"{parts[0]}{parts[1]}{parts[2]} leveraging {', '.join(keywords_to_add)}"
         else:
             enhanced = f"{bullet} using {', '.join(keywords_to_add)}"
     else:

@@ -251,9 +251,7 @@ class TestSectionOptimization:
         prioritized = prioritize_skills(sample_resume_sections["skills"], jd_keywords)
 
         # Matching skills should appear first
-        all_skills = (
-            prioritized["languages"] + prioritized["frameworks"] + prioritized["tools"]
-        )
+        all_skills = prioritized["languages"] + prioritized["frameworks"] + prioritized["tools"]
         top_3 = all_skills[:3]
         assert "Python" in top_3 or "Docker" in top_3 or "React" in top_3
 
@@ -267,9 +265,7 @@ class TestSectionOptimization:
         adjusted = adjust_summary(original_summary, jd_keywords)
 
         # Should incorporate leadership themes
-        assert any(
-            word in adjusted.lower() for word in ["lead", "architect", "mentor", "senior"]
-        )
+        assert any(word in adjusted.lower() for word in ["lead", "architect", "mentor", "senior"])
 
 
 class TestIterativeOptimization:
@@ -533,8 +529,18 @@ class TestOutputGeneration:
 
         optimization_result = {
             "iterations": [
-                {"iteration": 1, "score": 75, "gaps": ["kubernetes"], "improvements": ["Added K8s experience"]},
-                {"iteration": 2, "score": 88, "gaps": ["docker"], "improvements": ["Added Docker mention"]},
+                {
+                    "iteration": 1,
+                    "score": 75,
+                    "gaps": ["kubernetes"],
+                    "improvements": ["Added K8s experience"],
+                },
+                {
+                    "iteration": 2,
+                    "score": 88,
+                    "gaps": ["docker"],
+                    "improvements": ["Added Docker mention"],
+                },
                 {"iteration": 3, "score": 92, "gaps": [], "improvements": ["Reordered sections"]},
             ],
             "final_score": 92,

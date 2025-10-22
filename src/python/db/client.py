@@ -9,9 +9,7 @@ from typing import Any, TypeVar
 try:
     import libsql_client
 except ImportError:
-    raise ImportError(
-        "libsql_client is not installed. Install it with: pip install libsql-client"
-    )
+    raise ImportError("libsql_client is not installed. Install it with: pip install libsql-client")
 
 from .models import (
     ActiveApplication,
@@ -31,7 +29,7 @@ from .models import (
     TopKeyword,
 )
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class TursoClient:
@@ -61,11 +59,7 @@ class TursoClient:
             apps = await client.get_applications()
     """
 
-    def __init__(
-        self,
-        database_url: str | None = None,
-        auth_token: str | None = None
-    ):
+    def __init__(self, database_url: str | None = None, auth_token: str | None = None):
         """
         Initialize Turso client.
 
@@ -92,10 +86,7 @@ class TursoClient:
 
     async def connect(self) -> None:
         """Establish connection to Turso database"""
-        self.client = libsql_client.create_client(
-            url=self.database_url,
-            auth_token=self.auth_token
-        )
+        self.client = libsql_client.create_client(url=self.database_url, auth_token=self.auth_token)
 
     async def close(self) -> None:
         """Close database connection"""
@@ -120,7 +111,7 @@ class TursoClient:
 
     def _row_to_dict(self, row: Any) -> dict[str, Any]:
         """Convert database row to dictionary"""
-        if hasattr(row, '_asdict'):
+        if hasattr(row, "_asdict"):
             return row._asdict()
         return dict(row)
 
@@ -160,14 +151,29 @@ class TursoClient:
             RETURNING *
         """
 
-        result = await self._ensure_connected().execute(query, [
-            app.company, app.position, app.job_url, app.job_description,
-            app.location, app.salary_range, app.employment_type.value,
-            app.applied_date, app.status.value, app.source,
-            app.resume_version, int(app.cover_letter_used), app.keywords_targeted,
-            app.last_contact_date, app.next_followup_date, app.notes,
-            app.resume_path, app.cover_letter_path
-        ])
+        result = await self._ensure_connected().execute(
+            query,
+            [
+                app.company,
+                app.position,
+                app.job_url,
+                app.job_description,
+                app.location,
+                app.salary_range,
+                app.employment_type.value,
+                app.applied_date,
+                app.status.value,
+                app.source,
+                app.resume_version,
+                int(app.cover_letter_used),
+                app.keywords_targeted,
+                app.last_contact_date,
+                app.next_followup_date,
+                app.notes,
+                app.resume_path,
+                app.cover_letter_path,
+            ],
+        )
 
         return self._parse_model(result.rows[0], Application)
 
@@ -187,7 +193,7 @@ class TursoClient:
         company: str | None = None,
         limit: int = 100,
         offset: int = 0,
-        order_by: str = "applied_date DESC"
+        order_by: str = "applied_date DESC",
     ) -> list[Application]:
         """
         Get applications with optional filters.
@@ -228,9 +234,7 @@ class TursoClient:
         return self._parse_models(result.rows, Application)
 
     async def update_application(
-        self,
-        application_id: int,
-        update: ApplicationUpdate
+        self, application_id: int, update: ApplicationUpdate
     ) -> Application | None:
         """
         Update an application.
@@ -253,7 +257,7 @@ class TursoClient:
         for key, value in update_data.items():
             set_clauses.append(f"{key} = ?")
             # Handle enum values
-            if hasattr(value, 'value'):
+            if hasattr(value, "value"):
                 params.append(value.value)
             elif isinstance(value, bool):
                 params.append(int(value))
@@ -264,7 +268,7 @@ class TursoClient:
 
         query = f"""
             UPDATE applications
-            SET {', '.join(set_clauses)}
+            SET {", ".join(set_clauses)}
             WHERE id = ?
             RETURNING *
         """
@@ -307,24 +311,36 @@ class TursoClient:
             RETURNING *
         """
 
-        result = await self._ensure_connected().execute(query, [
-            interview.application_id, interview.interview_date, interview.interview_time,
-            interview.duration_minutes, interview.interview_type.value, interview.round_number,
-            interview.interviewer_name, interview.interviewer_title, interview.interviewer_email,
-            interview.panel_size, interview.questions_asked, interview.topics_covered,
-            interview.technical_assessment,
-            interview.result.value if interview.result else None,
-            interview.feedback_received, interview.personal_notes, interview.areas_to_improve,
-            interview.location, interview.meeting_link, interview.timezone
-        ])
+        result = await self._ensure_connected().execute(
+            query,
+            [
+                interview.application_id,
+                interview.interview_date,
+                interview.interview_time,
+                interview.duration_minutes,
+                interview.interview_type.value,
+                interview.round_number,
+                interview.interviewer_name,
+                interview.interviewer_title,
+                interview.interviewer_email,
+                interview.panel_size,
+                interview.questions_asked,
+                interview.topics_covered,
+                interview.technical_assessment,
+                interview.result.value if interview.result else None,
+                interview.feedback_received,
+                interview.personal_notes,
+                interview.areas_to_improve,
+                interview.location,
+                interview.meeting_link,
+                interview.timezone,
+            ],
+        )
 
         return self._parse_model(result.rows[0], Interview)
 
     async def get_interviews(
-        self,
-        application_id: int | None = None,
-        limit: int = 100,
-        offset: int = 0
+        self, application_id: int | None = None, limit: int = 100, offset: int = 0
     ) -> list[Interview]:
         """Get interviews with optional application filter"""
         if application_id:
@@ -347,9 +363,7 @@ class TursoClient:
         return self._parse_models(result.rows, Interview)
 
     async def update_interview(
-        self,
-        interview_id: int,
-        update: InterviewUpdate
+        self, interview_id: int, update: InterviewUpdate
     ) -> Interview | None:
         """Update an interview"""
         update_data = update.model_dump(exclude_unset=True)
@@ -363,7 +377,7 @@ class TursoClient:
 
         for key, value in update_data.items():
             set_clauses.append(f"{key} = ?")
-            if hasattr(value, 'value'):
+            if hasattr(value, "value"):
                 params.append(value.value)
             else:
                 params.append(value)
@@ -372,7 +386,7 @@ class TursoClient:
 
         query = f"""
             UPDATE interviews
-            SET {', '.join(set_clauses)}
+            SET {", ".join(set_clauses)}
             WHERE id = ?
             RETURNING *
         """
@@ -384,10 +398,7 @@ class TursoClient:
     # APPLICATION STAGE OPERATIONS
     # ========================================================================
 
-    async def get_application_stages(
-        self,
-        application_id: int
-    ) -> list[ApplicationStage]:
+    async def get_application_stages(self, application_id: int) -> list[ApplicationStage]:
         """Get stage history for an application"""
         query = """
             SELECT * FROM application_stages
@@ -403,10 +414,7 @@ class TursoClient:
     # ========================================================================
 
     async def get_metrics(
-        self,
-        start_date: str | None = None,
-        end_date: str | None = None,
-        limit: int = 30
+        self, start_date: str | None = None, end_date: str | None = None, limit: int = 30
     ) -> list[Metrics]:
         """
         Get metrics for date range.
@@ -472,14 +480,26 @@ class TursoClient:
             RETURNING *
         """
 
-        result = await self._ensure_connected().execute(query, [
-            metrics.metric_date, metrics.total_applications, metrics.applications_sent_today,
-            metrics.total_responses, metrics.response_rate, metrics.total_interviews,
-            metrics.interview_rate, metrics.total_offers, metrics.offer_rate,
-            metrics.total_rejections, metrics.avg_response_time_days,
-            metrics.avg_time_to_interview_days, metrics.avg_time_to_offer_days,
-            metrics.active_applications, metrics.pending_followups
-        ])
+        result = await self._ensure_connected().execute(
+            query,
+            [
+                metrics.metric_date,
+                metrics.total_applications,
+                metrics.applications_sent_today,
+                metrics.total_responses,
+                metrics.response_rate,
+                metrics.total_interviews,
+                metrics.interview_rate,
+                metrics.total_offers,
+                metrics.offer_rate,
+                metrics.total_rejections,
+                metrics.avg_response_time_days,
+                metrics.avg_time_to_interview_days,
+                metrics.avg_time_to_offer_days,
+                metrics.active_applications,
+                metrics.pending_followups,
+            ],
+        )
 
         return self._parse_model(result.rows[0], Metrics)
 
@@ -488,8 +508,7 @@ class TursoClient:
     # ========================================================================
 
     async def upsert_keyword_performance(
-        self,
-        keyword_perf: KeywordPerformanceCreate
+        self, keyword_perf: KeywordPerformanceCreate
     ) -> KeywordPerformance:
         """Create or update keyword performance"""
         query = """
@@ -511,13 +530,21 @@ class TursoClient:
             RETURNING *
         """
 
-        result = await self._ensure_connected().execute(query, [
-            keyword_perf.keyword, keyword_perf.total_uses, keyword_perf.response_count,
-            keyword_perf.response_rate, keyword_perf.interview_count,
-            keyword_perf.interview_rate, keyword_perf.offer_count, keyword_perf.offer_rate,
-            keyword_perf.category.value if keyword_perf.category else None,
-            keyword_perf.last_used_date
-        ])
+        result = await self._ensure_connected().execute(
+            query,
+            [
+                keyword_perf.keyword,
+                keyword_perf.total_uses,
+                keyword_perf.response_count,
+                keyword_perf.response_rate,
+                keyword_perf.interview_count,
+                keyword_perf.interview_rate,
+                keyword_perf.offer_count,
+                keyword_perf.offer_rate,
+                keyword_perf.category.value if keyword_perf.category else None,
+                keyword_perf.last_used_date,
+            ],
+        )
 
         return self._parse_model(result.rows[0], KeywordPerformance)
 

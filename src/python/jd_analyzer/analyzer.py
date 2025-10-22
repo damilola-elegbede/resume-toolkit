@@ -278,9 +278,7 @@ def categorize_requirements(text: str) -> dict[str, list[str]]:
             in_required_section = True
             in_nice_to_have_section = False
             continue
-        if re.match(
-            r"^(?:nice\s*to\s*have|preferred|bonus|plus|optional|desired)", line_lower
-        ):
+        if re.match(r"^(?:nice\s*to\s*have|preferred|bonus|plus|optional|desired)", line_lower):
             in_nice_to_have_section = True
             in_required_section = False
             continue

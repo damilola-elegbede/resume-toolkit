@@ -1,6 +1,5 @@
 """Pydantic models for ATS scoring system."""
 
-
 from pydantic import BaseModel, Field
 
 

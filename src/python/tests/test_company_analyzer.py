@@ -96,7 +96,9 @@ class TestCompanyAnalyzer:
         green_flags = detect_green_flags(data)
 
         growth_flags = [
-            f for f in green_flags if "growth" in f.lower() or "expand" in f.lower() or "hiring" in f.lower()
+            f
+            for f in green_flags
+            if "growth" in f.lower() or "expand" in f.lower() or "hiring" in f.lower()
         ]
         assert len(growth_flags) > 0
 
@@ -145,7 +147,9 @@ class TestCompanyAnalyzer:
         red_flags = detect_red_flags(data)
 
         culture_flags = [
-            f for f in red_flags if "turnover" in f.lower() or "culture" in f.lower() or "management" in f.lower()
+            f
+            for f in red_flags
+            if "turnover" in f.lower() or "culture" in f.lower() or "management" in f.lower()
         ]
         assert len(culture_flags) > 0
 
@@ -161,7 +165,9 @@ class TestCompanyAnalyzer:
 
         assert len(points) > 0
         assert len(points) <= 7
-        funding_points = [p for p in points if "50M" in p or "Series C" in p or "funding" in p.lower()]
+        funding_points = [
+            p for p in points if "50M" in p or "Series C" in p or "funding" in p.lower()
+        ]
         assert len(funding_points) > 0
 
     def test_generate_talking_points_values(self, sample_company_data: dict) -> None:
@@ -171,7 +177,9 @@ class TestCompanyAnalyzer:
         value_points = [
             p
             for p in points
-            if "innovation" in p.lower() or "diversity" in p.lower() or "work-life balance" in p.lower()
+            if "innovation" in p.lower()
+            or "diversity" in p.lower()
+            or "work-life balance" in p.lower()
         ]
         assert len(value_points) > 0
 
@@ -274,7 +282,9 @@ class TestCompanyAnalyzer:
 
         red_flags = detect_red_flags(data)
 
-        financial_flags = [f for f in red_flags if "financial" in f.lower() or "bankruptcy" in f.lower()]
+        financial_flags = [
+            f for f in red_flags if "financial" in f.lower() or "bankruptcy" in f.lower()
+        ]
         assert len(financial_flags) > 0
 
     def test_generate_talking_points_with_industry(self) -> None:
@@ -320,4 +330,6 @@ class TestCompanyAnalyzer:
         assert "fast-paced" in insights["culture"].lower()
         assert len(insights["questions_to_ask"]) >= 4
         # Should have news-related question
-        assert any("product" in q.lower() or "ai" in q.lower() for q in insights["questions_to_ask"])
+        assert any(
+            "product" in q.lower() or "ai" in q.lower() for q in insights["questions_to_ask"]
+        )

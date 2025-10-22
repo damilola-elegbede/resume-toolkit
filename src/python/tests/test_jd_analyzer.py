@@ -1,6 +1,5 @@
 """Tests for Job Description Analyzer."""
 
-
 import pytest
 
 
@@ -132,8 +131,7 @@ class TestJDAnalyzer:
 
         # Should identify leadership keywords
         assert any(
-            "mentor" in skill.lower() or "lead" in skill.lower()
-            for skill in leadership_skills
+            "mentor" in skill.lower() or "lead" in skill.lower() for skill in leadership_skills
         )
         assert any("communication" in skill.lower() for skill in leadership_skills)
 

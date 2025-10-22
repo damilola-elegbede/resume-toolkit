@@ -27,7 +27,6 @@ class ATSScorerError(Exception):
     """Base exception for ATS scorer errors."""
 
 
-
 # Standard resume sections
 STANDARD_SECTIONS = {
     "SUMMARY",
@@ -418,8 +417,7 @@ def generate_recommendations(
 
         # Find top missing keywords by importance and frequency
         missing_with_scores = [
-            (kw, keyword_importance.get(kw, 0), keyword_freq.get(kw, 0))
-            for kw in missing_keywords
+            (kw, keyword_importance.get(kw, 0), keyword_freq.get(kw, 0)) for kw in missing_keywords
         ]
         missing_with_scores.sort(key=lambda x: (x[1], x[2]), reverse=True)
 

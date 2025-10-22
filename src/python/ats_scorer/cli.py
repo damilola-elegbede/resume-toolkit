@@ -258,16 +258,14 @@ def main(
         # Detailed breakdown in verbose mode
         if verbose and result.keyword_details:
             console.print("\n[bold]Keyword Details:[/bold]")
-            console.print(f"  Required skills match: {result.keyword_details.matched_required:.0f}%")
+            console.print(
+                f"  Required skills match: {result.keyword_details.matched_required:.0f}%"
+            )
             console.print(
                 f"  Nice-to-have match: {result.keyword_details.matched_nice_to_have:.0f}%"
             )
-            console.print(
-                f"  Matched keywords: {len(result.keyword_details.matched_keywords)}"
-            )
-            console.print(
-                f"  Missing keywords: {len(result.keyword_details.missing_keywords)}"
-            )
+            console.print(f"  Matched keywords: {len(result.keyword_details.matched_keywords)}")
+            console.print(f"  Missing keywords: {len(result.keyword_details.missing_keywords)}")
 
         if verbose and result.skills_details:
             console.print("\n[bold]Skills Alignment Details:[/bold]")
@@ -277,7 +275,9 @@ def main(
 
         # Recommendations
         if result.recommendations:
-            target_score = min(result.overall_score + sum(r.impact for r in result.recommendations[:3]), 100)
+            target_score = min(
+                result.overall_score + sum(r.impact for r in result.recommendations[:3]), 100
+            )
 
             console.print(f"\n[bold]Top Recommendations to reach {target_score:.0f}%:[/bold]\n")
 

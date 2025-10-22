@@ -33,9 +33,7 @@ def select_relevant_anecdotes(
     scored_anecdotes = []
     for anecdote in anecdotes:
         score = 0.0
-        anecdote_skills = set(
-            skill.lower() for skill in anecdote.get("skills", [])
-        )
+        anecdote_skills = set(skill.lower() for skill in anecdote.get("skills", []))
         anecdote_content = anecdote.get("content", "").lower()
 
         # Calculate relevance score
@@ -120,24 +118,16 @@ def generate_opening(
             f"I am particularly drawn to your focus on {value}"
         )
     else:
-        opening_parts.append(
-            f"I am {verb} for the {position} position at {company_name}"
-        )
+        opening_parts.append(f"I am {verb} for the {position} position at {company_name}")
 
     # Add enthusiasm and connection to ensure specific info is referenced
     if culture and not recent_news and not mission:
-        opening_parts.append(
-            f" I'm impressed by {company_name}'s {culture}"
-        )
+        opening_parts.append(f" I'm impressed by {company_name}'s {culture}")
     elif mission and recent_news:
-        opening_parts.append(
-            " and am excited about the opportunity to contribute to this mission"
-        )
+        opening_parts.append(" and am excited about the opportunity to contribute to this mission")
     elif not recent_news and not mission and values and len(values) > 1:
         # Add second value for more specificity
-        opening_parts.append(
-            f", as well as your commitment to {values[1]}"
-        )
+        opening_parts.append(f", as well as your commitment to {values[1]}")
 
     opening = "".join(opening_parts).strip()
 
@@ -168,9 +158,7 @@ def generate_body(
     required_skills = jd_analysis.get("required_skills", [])
 
     # Select most relevant anecdotes (get 3 for more content)
-    selected_anecdotes = select_relevant_anecdotes(
-        anecdotes, keyword_importance, max_anecdotes=3
-    )
+    selected_anecdotes = select_relevant_anecdotes(anecdotes, keyword_importance, max_anecdotes=3)
 
     paragraphs = []
 
@@ -366,10 +354,10 @@ def generate_cover_letter(
     company_name = company_research.get("company", "Hiring Manager")
 
     # Header with contact information
-    header = f"""{user_info.get('name', '')}
-{user_info.get('email', '')}
-{user_info.get('phone', '')}
-{user_info.get('linkedin', '')}"""
+    header = f"""{user_info.get("name", "")}
+{user_info.get("email", "")}
+{user_info.get("phone", "")}
+{user_info.get("linkedin", "")}"""
 
     # Date (placeholder for actual date)
     date = ""
@@ -395,7 +383,7 @@ def generate_cover_letter(
     # Signature
     signature_word = "Sincerely," if tone == "formal" else "Best regards,"
     signature = f"""{signature_word}
-{user_info.get('name', '')}"""
+{user_info.get("name", "")}"""
 
     # Combine all sections
     sections = [
