@@ -201,7 +201,9 @@ describe('apply command', () => {
       const result = await applyWorkflow('https://jobs.company.com/position/123', options);
 
       expect(result.stages.interviewPrep?.completed).toBe(true);
-      expect(result.files).toEqual(expect.arrayContaining([expect.stringContaining('interview-prep.md')]));
+      expect(result.files).toEqual(
+        expect.arrayContaining([expect.stringContaining('interview-prep.md')])
+      );
     });
 
     it('should skip interview prep when flag is not set', async () => {
@@ -460,10 +462,12 @@ describe('apply command', () => {
       expect(result.stages.coverLetter?.completed).toBe(true);
       expect(result.stages.optimization?.completed).toBe(true);
       // Files should contain results from all stages
-      expect(result.files).toEqual(expect.arrayContaining([
-        expect.stringContaining('cover-letter.md'),
-        expect.stringContaining('tailored-resume.md')
-      ]));
+      expect(result.files).toEqual(
+        expect.arrayContaining([
+          expect.stringContaining('cover-letter.md'),
+          expect.stringContaining('tailored-resume.md'),
+        ])
+      );
     });
 
     it('should handle Unicode in company/position names', async () => {
